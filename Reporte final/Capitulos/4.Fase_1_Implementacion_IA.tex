@@ -1,0 +1,898 @@
+\chapter{Algoritmo desarrollado}
+Para ejemplificar los conceptos aprendidos se implemento una red neuronal convolucional
+(CNN) utilizando keras. Esta CNN fue entrenada para clasificar número escritos a mano.
+Se utilizó el conjunto de datos MNIST, que contiene 60 000 imágenes de entrenamiento y 
+10 000 imágenes de prueba de dígitos del 0 al 9. Los objetivos de esta sección son:
+\begin{itemize}
+    \item Construir y entrenar una red neuronal para clasificar imágenes de números 
+    escritos con su respectivo nombre.
+    \item Analizar y comprender los componentes necesarios para hacer un 
+    entrenamiento efectivo.
+\end{itemize}
+
+\section{Introducción}
+El cerebro humano es quien dicta la forma en la que percibimos sabores, olores, 
+colores, formas, sonidos, etc. Nos permite guardar memorias, emociones y sueños. 
+Por ello se ha buscado de usar herramientas que traten de asemejarse a este tipo 
+de procesamiento.
+
+A través de los años, el ser humano se desarrolla y mucho de su aprendizaje se basa
+en prueba y error hasta que se aprende de forma intuitiva a diferenciar un perro de un 
+gato, el rojo del azul, etc.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.35\linewidth]{imagenes/01_Datos_MNIST.png}
+    \caption{Números dibujados. Extraído del dataset MNIST y graficado con matplotlib.}
+    \label{fig:datos_MNIST}
+\end{figure}
+
+Un problema complejo que podemos estudiar es el diferenciar los número escritos. Cada
+persona tiende a tener una forma particular de escribi los número, aún cuando les 
+enseñaron el mismo símbolo, es posible que dos personas no escriben de la misma forma 
+dicho número.
+
+Uno podría pensar en enunciar la lista de caracteríticas que diferencia un perro de un 
+gato, un 1 con un 7, un 4 con un 9, pero como existen una gran divesidad de perros y gatos
+así como una gran diversidad de «versiones» del mismo número, entonces lo mejor sería
+dejar que la red neuronal aprenda a diferenciarlos.
+
+Para lograr esto necesitamos cambiar el paradigma de cómo «instruir» que un programa 
+nos realice una tarea. Las computadores son buenas haciendo cálculos matemáticos rápidos
+y también son buenas en seguir instrucciones. Ahora dejaremos que la red neuronal explore
+los datos a los cuales nosotros ya les pusimos una nota con el número que representa 
+dicha imagen. 
+
+\subsubsection{Definición de modelo}
+Ante todo esto, necesitamos definir qué es un modelo. Un modelo lo definiremos como una
+función 
+
+\begin{equation}
+    h(\vec{x},\theta)
+\end{equation}
+
+donde $\vec{x}$ representará el conjunto de datos de entrada mientras que $\theta$ son
+los parámetros del modelo. Por ejemplo, en la función
+
+\begin{equation*}
+    f(x,y) = 5x^3 -3 x^2 + 12 \cos{\pi y}
+\end{equation*}
+
+$5$, $-3$, $12$, $\pi$ son los parámetros del modelo, al igual que el valor de los 
+exponentes de las variables $x$ y $y$, mientras que $x$ y $y$ son nuestros datos de
+entrada. Una red neuronal será un modelo, es decir, estos procesos que queremos que 
+aprenda nuestra red neuroanl artificial los podremos manejar como una serie de funciones
+con sus respectivos parámetros e información de entrada. 
+
+\subsubsection{Estructura básica de una red neuronal artificial}
+Las redes neuronales artificiales buscan imitar el funcionamiento de las redes neuronales
+dentro del cerebro. La neurona es la unidad fundamental del cerebro, procesa información
+mediante dentritas y conexiones dinámicas que dependen de procesos eléctricos y químicos
+\cite{khan_curso_neuronas}. Esta información es tranmitida por medio de las células de
+Schawamm que en conjunto forman el axón, es decir, el puente de conexión entre distintas 
+neuronas. En cuanto mayor es el uso de esta neurona, mayor es la plasticidad de este, 
+esto quiere decir, es más fácil que pase información. Para visualizar mejor esto podemos
+ver la figura \ref{fig:Sinapsis} 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.75\linewidth]{imagenes/01_Sinápsis.png}
+    \caption{Estructura de una neurona y sinapsis.}
+    \label{fig:Sinapsis}
+\end{figure}
+
+Con esto en mente podemos construir nuestro modelo. Necesitamos una unidad básica 
+de procesamiento de información que, en el contexto de las redes neuronales 
+artificiales, toma el nombre de \textit{perceptrón}. Para imitar las señales 
+electroquímicas de las neuronas biológicas usaremos \textit{funciones de activación}, 
+y para modelar la facilidad con la que la información pasa de una neurona a otra 
+usaremos los \textit{pesos} del modelo (sus parámetros que serán ajustables a pueba 
+y error).
+
+Esta estructura define a una neurona individual. Sin embargo, para que el modelo 
+logre aprender características complejas y no lineales, necesitaremos anidar varios 
+perceptrones en capas secuenciales, formando así una Red Neuronal Profunda 
+(Deep Neural Network).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.65\linewidth]{imagenes/01_Red_Neuronal.jpg}
+    \caption{Estructura de una red neuronal artificial. Extraída de 
+    https://es.linkedin.com/pulse/7-consejos-para-trabajar-con-redes-neuronales-en-rodríguez-mgs}
+    \label{fig:Red_neuronal}
+\end{figure}
+
+La primera capa, por donde ingresan los datos, recibe el nombre de \textit{capa 
+de entrada}. La última capa, que entrega el resultado, se llama \textit{capa de 
+salida}. Las capas intermedias se denominan \textit{capas ocultas}. 
+
+Para formalizar matemáticamente la transmisión de información, adoptaremos la 
+notación estándar: sea $w_{jk}^l$ el peso que conecta la neurona $k$ de la 
+capa anterior $(l-1)$ con la neurona $j$ de la capa actual $l$. De esta forma, 
+la activación $a_j^l$ de la $j$-ésima neurona en la capa $l$ se define como:
+
+\begin{equation}
+    a_j^l = f \left( \sum_k w_{jk}^l a_k^{l-1} + b_j^l \right)
+    \label{eq:expresion_perceptron}
+\end{equation}
+
+Donde:
+\begin{itemize}
+    \item $f$: es la función de activación (no lineal).
+    \item $b_j^l$: es el sesgo (\textit{bias}) de la neurona $j$ en la capa $l$.
+    \item $a_k^{l-1}$: es la salida (activación) de la neurona $k$ en la capa anterior.
+    \item La sumatoria recorre todas las $k$ neuronas de la capa anterior.
+\end{itemize}
+
+
+\section{Entrenamiento}
+\subsection{¿Cómo aprende una red neuronal?}
+Para entender cómo podemos hacer que una red neuronal aprenda podemos estructurarlo
+en los siguientes pasos:
+\begin{enumerate}
+    \item \textbf{Inicialización de parámetros:} 
+    Antes de comenzar el entrenamiento, los pesos $\omega$ y sesgos $b$ del modelo 
+    deben definirse. No se pueden iniciar en cero (para evitar problemas de simetría 
+    que impedirían el aprendizaje), por lo que se inician usualmente de forma 
+    aleatoria siguiendo distribuciones estadísticas específicas (como la 
+    inicialización de \textit{Xavier} o \textit{He}), lo que asegura que la 
+    varianza de las activaciones se mantenga estable a través de las capas.
+
+    \item \textbf{Propagación hacia adelante (Forward Propagation):} 
+    Se ingresan los datos de entrenamiento a la red. La información fluye desde la 
+    capa de entrada, atravesando las capas ocultas mediante operaciones matriciales 
+    y funciones de activación no lineales, hasta generar una predicción final 
+    $\hat{y}$.
+    
+    \item \textbf{Cálculo de la función de costo:} 
+    Se evalúa qué tan lejos está la predicción $\hat{y}$ del valor real $y$. Para 
+    esto utilizamos una \textit{función de costo} (o Loss Function), denotada como 
+    $J(\theta)$. Dependiendo del problema, se utilizan métricas como el Error 
+    Cuadrático Medio (MSE) para regresión o la Entropía Cruzada para clasificación.
+
+    \item \textbf{Retropropagación (Backpropagation):} 
+    Este es el paso crucial. Utilizando el algoritmo de retropropagación, 
+    calculamos el gradiente de la función de costo con respecto a cada parámetro 
+    de la red ($\nabla_\omega J$).Esto lo podemos ver de forma intuitiva como calcular
+    cuanto contribuye cada parámetro en el costo final para así saber qué influye más 
+    y qué influye menos. Matemáticamente, esto implica aplicar la 
+    \textbf{regla de la cadena} desde la última capa hacia atrás, para determinar 
+    la sensibilidad del error ante cambios infinitesimales en cada peso.
+
+    \item \textbf{Optimización y actualización de pesos:} 
+    Con los gradientes calculados, utilizamos un algoritmo optimizador (como 
+    \textit{Stochastic Gradient Descent} o \textit{Adam}) para actualizar los 
+    pesos. El objetivo es mover los parámetros en la dirección opuesta al gradiente 
+    para encontrar el mínimo global (o un buen mínimo local) de la superficie de 
+    error. La actualización sigue la regla general:
+    \begin{equation}
+        \omega_{nuevo} = \omega_{viejo} - \eta \cdot \nabla J
+    \end{equation}
+    donde $\eta$ es la \textit{tasa de aprendizaje} (learning rate).
+
+    \item \textbf{Iteración (Épocas):} 
+    El proceso anterior (pasos 2 al 5) constituye una iteración. Se repite este 
+    ciclo múltiples veces sobre todo el conjunto de datos. Cada pase completo por 
+    el dataset se conoce como una \textit{época}. El ciclo continúa hasta que la 
+    función de costo converge a un valor mínimo aceptable o se cumple un criterio 
+    de parada temprana.
+\end{enumerate}
+
+\subsection{Optimización y Algoritmo de Retropropagación}
+
+En esta sección se expandirá los temas de optimización y el algoritmo de retropropagación
+o backpropagation. Estos temas son muy interesantes, profundos y puntos críticos en el 
+entrenamiento de una red neuronal.
+
+Una vez que la red ha realizado una predicción (Forward Propagation), el siguiente 
+paso es cuantificar el error y ajustar los parámetros del modelo para minimizarlo. 
+Este proceso es análogo a encontrar el estado de mínima energía en un sistema físico, 
+donde la superficie de energía está definida por la función de costo.
+
+\subsubsection{El Descenso del Gradiente}
+El objetivo central del entrenamiento es encontrar el conjunto de parámetros 
+$\theta = \{W, b\}$ que minimice la función de costo $J(\theta)$. Visualmente, 
+podemos imaginar $J(\theta)$ como una hipersuperficie en un espacio de dimensión 
+$D$ (donde $D$ es el número total de parámetros, que puede ser de millones).
+
+Para encontrar el mínimo global (o un mínimo local aceptable), utilizamos el método 
+del \textit{Descenso del Gradiente}. La intuición matemática se basa en el cálculo 
+vectorial: el gradiente de una función escalar, denotado como $\nabla J(\theta)$, 
+es un vector que apunta en la dirección de mayor crecimiento de la función. Por 
+consiguiente, el negativo del gradiente $-\nabla J(\theta)$ apunta en la dirección 
+de mayor descenso.
+
+
+
+La regla de actualización iterativa para un parámetro $\omega$ se define como:
+
+\begin{equation}
+    \omega_{t+1} = \omega_t - \eta \frac{\partial J}{\partial \omega_t}
+    \label{eq:gradient_descent}
+\end{equation}
+
+Donde $\eta$ (tasa de aprendizaje) es un escalar positivo que controla el tamaño 
+del paso. Si $\eta$ es muy pequeño, la convergencia es lenta; si es muy grande, el 
+sistema puede oscilar o divergir. En la práctica, no calculamos el gradiente usando 
+todo el dataset simultáneamente (Batch Gradient Descent) debido a limitaciones de 
+memoria, sino que utilizamos aproximaciones estocásticas con subconjuntos de datos 
+(\textit{Mini-batch Stochastic Gradient Descent}), lo que introduce cierto "ruido" 
+beneficioso que ayuda a escapar de mínimos locales poco profundos.
+
+\subsubsection{Retropropagación (Backpropagation)}
+Para aplicar la ecuación (\ref{eq:gradient_descent}), necesitamos calcular 
+eficientemente las derivadas parciales de la función de costo con respecto a cada 
+peso y sesgo de la red. En una red profunda, esto no es trivial debido a la 
+composición de funciones anidadas. La solución es el algoritmo de 
+\textit{Backpropagation}, que no es más que una aplicación recursiva y eficiente 
+de la \textbf{Regla de la Cadena}.
+
+Definamos el error en la capa $l$ no como la diferencia directa con la salida, 
+sino como la sensibilidad del costo a los cambios en la entrada ponderada $z^l$. 
+Definimos este error $\delta^l$ como:
+
+\begin{equation}
+    \delta^l \equiv \frac{\partial J}{\partial z^l}
+\end{equation}
+
+El algoritmo se desarrolla en cuatro ecuaciones fundamentales que permiten propagar 
+este error desde la capa de salida hacia atrás:
+
+\subsubsection{1. Error en la capa de salida ($L$)}
+Primero, calculamos cuánto contribuyó la última capa al error total. Usando la 
+regla de la cadena:
+\begin{equation}
+    \delta^L = \nabla_a J \odot \sigma'(z^L)
+\end{equation}
+Donde $\nabla_a J$ es la derivada del costo respecto a la activación de salida, 
+$\sigma'$ es la derivada de la función de activación y $\odot$ denota el producto 
+de Hadamard (elemento a elemento).
+
+\subsubsection{2. Propagación del error a capas ocultas}
+Una vez conocemos el error en la capa $L$, podemos calcular el error en la capa 
+anterior $L-1$, y así sucesivamente hasta la primera capa. El error fluye hacia 
+atrás a través de los pesos transpuestos:
+\begin{equation}
+    \delta^l = ((W^{l+1})^T \delta^{l+1}) \odot \sigma'(z^l)
+\end{equation}
+Físicamente, esto se puede interpretar como «distribuir» el error de la 
+capa posterior a las neuronas de la capa anterior, ponderado por el peso de la 
+conexión ($W$).
+
+
+\subsubsection{3. Cálculo de los gradientes}
+Finalmente, una vez que tenemos los valores de $\delta^l$ para todas las capas, 
+las derivadas parciales necesarias para el descenso del gradiente son inmediatas:
+
+Para el sesgo ($bias$):
+\begin{equation}
+    \frac{\partial J}{\partial b_j^l} = \delta_j^l
+\end{equation}
+
+Para los pesos ($weights$):
+\begin{equation}
+    \frac{\partial J}{\partial w_{jk}^l} = a_k^{l-1} \delta_j^l
+\end{equation}
+
+De esta última ecuación podemos intuir que el gradiente de un peso que 
+conecta la neurona $k$ con la $j$ es proporcional a la activación de la neurona de 
+entrada ($a_{in}$) multiplicada por el error de la neurona de salida ($\delta_{out}$). 
+Esto significa que los pesos que conectan neuronas muy activas con neuronas que 
+contribuyen mucho al error serán los que más se ajusten durante el entrenamiento.
+
+\subsection{Conjunto de datos}
+
+Para entrenar una red neuronal necesitamos información para que aprenda de ella y 
+se realicen los 6 pasos mencionados anteriormente (Incialización de parámetros, forward propagation,
+canlculo del costo, backpropagation, optmización y actualización de pesos). Usualmente
+una base de datos la podemos dividir de 2 formas. La primera forma es dividirla en 3,
+1) el primer conjunto es información de entrada, el conjunto de \textit{entrenamiento}; 
+2) el segundo conjunto es de \textit{validación} de información, es decir, donde le mostramos
+las respuestas de lo que queremos y con el que se mide el costo; y 3) el conjunto de
+\textit{evaluación}, este conjunto no se usa nunca en los datos y es para ver cómo
+se comporta el modelo cuando tiene información desconocida. Los porcentajes usuales 
+aproximados suelen ser de 70 \% entrenamiento, 15 \% validación, y 15 \% evaluación
+aunque uno puede cambiar los porcentajes con forme sea mejor siempre se recomienda 
+dejar la mayor cantidad de datos posibles para entrenamiento sin ignorar por completo
+los otros dos para evitar que la red «memorice» en lugar de «aprender».
+
+La segunda forma es usar toda la base de datos y dividirla en entrenamiento y validación.
+Para evaluar el modelo se usa otra base de datos distinta.
+
+Resumiendo un poco
+
+\textbf{1. Conjunto de Entrenamiento (Train Set)}
+    \begin{itemize}
+        \item Suele usarse entre el \textbf{70-80\%} de los datos.
+        \item Se usa para \textbf{ajustar los pesos} de la red.
+    \end{itemize}
+    
+\textbf{2. Conjunto de Validación (Validation Set)}
+    \begin{itemize}
+        \item \textbf{10-15\%} de los datos.
+        \item Se usa para \textbf{ajustar hiperparámetros} (capas, tasa de aprendizaje, regularización, etc.).
+        \item Ayuda a detectar \textbf{sobreajuste (overfitting)}.
+    \end{itemize}
+
+\textbf{3. Conjunto de Prueba (Test Set)}
+    \begin{itemize}
+        \item \textbf{10-15\%} de los datos.
+        \item Evalúa el \textbf{rendimiento final} del modelo en datos nunca vistos.
+    \end{itemize}
+\textbf{¿Por qué son importantes?}
+    \begin{itemize}
+        \item Evitan que el modelo \textbf{memorice} los datos de entrenamiento.
+        \item Permiten evaluar la \textbf{generalización} del modelo.
+        \item Aseguran un buen desempeño en datos reales.
+    \end{itemize}
+
+
+
+\section{Componentes clave}
+Esta sección es una lista de herramientas, es decir, se definirán funciones de activación
+usuales, así como las funciones de optmizadores y de regularización.
+
+\subsection{Funciones de activación}
+
+Como se ha descrito anteriormente, la información fluye a través de la red neuronal 
+mediante operaciones matriciales. Sin embargo, si se usara únicamente 
+combinaciones lineales de los inputs (del tipo $y = Wx + b$), la red neuronal 
+colapsaría matemáticamente a un simple modelo de regresión lineal, 
+independientemente de cuántas capas ocultas tenga.
+Esto se debe a que la composición de funciones lineales es, a su vez, una función 
+lineal. Si tenemos dos capas lineales consecutivas, $f(x) = W_1 x$ y $g(h) = W_2 h$, 
+la salida final sería 
+\begin{equation*}
+    g(f(x)) = W_2(W_1 x) = (W_2 W_1)x = W_{new}x
+\end{equation*} 
+
+Es decir, 
+toda la profundidad de la red podría resumirse en una sola matriz de pesos.
+
+Para romper esta linealidad y permitir que el modelo aprenda patrones complejos y 
+fronteras de decisión no convexas (basándose en el \textit{Teorema de Aproximación 
+Universal}), es estrictamente necesario introducir no-linealidades mediante las 
+\textbf{funciones de activación} $\sigma(\cdot)$ al final de cada neurona.
+
+\subsubsection{Teorema de Aproximación Universal}
+Desde la perspectiva del álgebra lineal, una red neuronal sin activaciones no lineales 
+sería equivalente a una composición de transformaciones lineales. Dado que la 
+composición de transformaciones lineales es, a su vez, una transformación lineal 
+\cite{friedberg_linear}, una red profunda sin no-linealidades colapsaría 
+matemáticamente a una sola capa (un modelo de regresión lineal), perdiendo toda 
+capacidad de modelar estructuras complejas.
+
+Para resolver esto, se introducen no-linealidades. El \textbf{Teorema de 
+Aproximación Universal}, demostrado formalmente por Cybenko \cite{cybenko1989approximation} 
+y generalizado posteriormente por Hornik \cite{hornik1991approximation}, 
+establece que una red neuronal \textit{feedforward}, con al menos una capa oculta
+y funciones de activación no lineales acotadas y monotona creciente, puede aproximar 
+cualquier función continua, $f: \mathbb{R}^n \to \mathbb{R}^m$, con un 
+grado de precisión arbitrario.
+
+Esto implica que la no linealidad es la característica que otorga a las redes 
+neuronales su capacidad de actuar como 
+\textit{aproximadores universales} de funciones complejas.
+
+A continuación, se describen las funciones más utilizadas:
+
+% --- SIGMOID ---
+\subsubsection{Función Sigmoide (Logística)}
+\noindent
+\begin{minipage}{0.55\textwidth}
+    Históricamente utilizada por su similitud con la tasa de disparo de una neurona 
+    biológica\cite{haykin2009neural}. Comprime cualquier valor real a un rango entre 0 y 1, lo que la hace 
+    útil para interpretar la salida como una probabilidad en clasificación binaria.
+    
+    \begin{equation}
+        \sigma(x) = \frac{1}{1+e^{-x}}
+        \label{eq:Sigmoid}
+    \end{equation}
+    
+    \textbf{Propiedades:}
+    \begin{itemize}
+        \item \textbf{Dominio:} $(-\infty, \infty)$
+        \item \textbf{Codominio:} $(0,1)$
+    \end{itemize}
+    
+    \textbf{Desventajas:}
+    No está centrada en cero y sufre severamente del problema de \textit{vanishing 
+    gradients}: para valores muy altos o muy bajos de $x$, la derivada es casi cero, 
+    lo que detiene el aprendizaje en redes profundas.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.42\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/sigmoid.png}
+    \captionof{figure}{Función Sigmoid.}
+    \label{fig:Sigmoid}
+\end{minipage}
+\vspace{0.5cm}
+
+% --- TANH ---
+\subsubsection{Función Tangente Hiperbólica (Tanh)}
+\noindent
+\begin{minipage}{0.55\textwidth}
+    Es una versión reescalada de la sigmoide. Se prefiere en capas ocultas sobre 
+    la sigmoide porque sus salidas están centradas en cero, lo que facilita la 
+    convergencia durante el descenso del gradiente.
+    
+    \begin{equation}
+        \tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}
+        \label{eq:tanh}
+    \end{equation}
+    
+    \textbf{Propiedades:}
+    \begin{itemize}
+        \item \textbf{Dominio:} $(-\infty, \infty)$
+        \item \textbf{Codominio:} $(-1,1)$
+    \end{itemize}
+    
+    \textbf{Desventajas:}
+    Aunque mejora la convergencia, mantiene el problema de los gradientes que se 
+    desvanecen (\textit{vanishing gradients}) en los extremos de saturación.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.42\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/tanh.png}
+    \captionof{figure}{Función Tanh.}
+    \label{fig:Tanh}
+\end{minipage}
+\vspace{0.5cm}
+
+% --- RELU ---
+\subsubsection{Función ReLU (Rectified Linear Unit)}
+\noindent
+\begin{minipage}{0.55\textwidth}
+    Es el estándar actual para capas ocultas en Deep Learning. Su simplicidad 
+    computacional y su capacidad para mitigar el desvanecimiento del gradiente (su 
+    derivada es 1 para $x>0$) permiten entrenar redes muy profundas.
+    
+    \begin{equation}
+        f(x) = \max(0, x)
+        \label{eq:ReLU}
+    \end{equation}
+    
+    \textbf{Propiedades:}
+    \begin{itemize}
+        \item \textbf{Dominio:} $(-\infty, \infty)$
+        \item \textbf{Codominio:} $[0, \infty)$
+    \end{itemize}
+    
+    \textbf{Desventajas:}
+    Sufre del problema de \textit{Dying ReLU}: si una neurona cae en la zona 
+    negativa, su gradiente es cero y los pesos jamás se actualizarán de nuevo, 
+    «matando» la neurona permanentemente.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.42\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/relu.png}
+    \captionof{figure}{Función ReLU.}
+    \label{fig:ReLU}
+\end{minipage}
+\vspace{0.5cm}
+
+% --- SOFTMAX ---
+\subsubsection{Función Softmax}
+\noindent
+\begin{minipage}{0.55\textwidth}
+    Fundamental para problemas de clasificación multiclase (como la clasificación 
+    de jets). Transforma un vector de números reales ($logits$) en una distribución 
+    de probabilidad normalizada.
+    
+    \begin{equation}
+        \sigma(x)_i = \frac{e^{x_i}}{\sum_{j=1}^K e^{x_j}}
+        \label{eq:Softmax}
+    \end{equation}
+    
+    \textbf{Propiedades:}
+    \begin{itemize}
+        \item \textbf{Codominio:} $(0,1)$
+        \item \textbf{Restricción:} $\sum \sigma(x)_i = 1$
+    \end{itemize}
+    
+    Se utiliza casi exclusivamente en la \textbf{capa de salida}, permitiendo 
+    seleccionar la clase con mayor probabilidad asociada.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.42\textwidth}
+    \centering
+    \includegraphics[width=0.9\linewidth]{imagenes/softmax.png}
+    \captionof{figure}{Esquema Softmax.}
+    \label{fig:Softmax}
+\end{minipage}
+
+
+\subsection{Funciones de Costo (Loss Functions)}
+
+La función de costo, o función de pérdida cuantifica la discrepancia entre la 
+predicción del modelo $\hat{y}$ y el valor real $y$. La elección de esta función 
+dicta cómo se penalizan los errores y afecta drásticamente la velocidad de 
+convergencia.
+
+Dependiendo de la naturaleza del problema, regresión o clasificación, se usan 
+diferentes distribuciones de probabilidad, con $L$ representado dicha función:
+
+\subsubsection{Entropía Cruzada (Cross Entropy)}
+Es la función estándar para problemas de clasificación. Desde la teoría de la 
+información de Shannon\cite{shannon1948}, mide la diferencia entre dos 
+distribuciones de probabilidad: la real y la estimada. Como señalan Goodfellow et 
+al. \cite{goodfellow2016deep}, el uso de esta función en lugar del error cuadrático 
+medio para funciones de activación sigmoideas/softmax evita la saturación del 
+gradiente, penalizando logarítmicamente las predicciones que son confiadas pero 
+erróneas.
+
+\begin{itemize}
+    \item \textbf{Para clasificación binaria:}
+    \begin{equation}
+        L = - y \log(\hat{y}) - (1 - y) \log(1 - \hat{y})   
+        \label{eq:Binary_CE}
+    \end{equation}
+    
+    \item \textbf{Para clasificación multiclase (Categorical Cross Entropy):}
+    \begin{equation}
+        L = - \sum_{i} y_i \log(\hat{y}_i)
+        \label{eq:Categorical_CE}
+    \end{equation}
+\end{itemize}
+
+\subsubsection{Error Cuadrático Medio (MSE)}
+Utilizado principalmente en regresión. Asume implícitamente que el ruido en los 
+datos sigue una distribución normal. Debido al término cuadrático, penaliza de 
+forma severa los grandes errores, lo que lo hace sensible a valores atípicos 
+(\textit{outliers}).
+
+\begin{equation}
+    L = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+    \label{eq:MSE}
+\end{equation}
+
+% --- OPTIMIZADORES (Con Minipage como pediste) ---
+\subsection{Algoritmos de Optimización}
+
+\noindent
+\begin{minipage}{0.55\textwidth}
+    Una vez definida la superficie de la función de error, necesitamos un método 
+    para movernos hacia el mínimo global. Los optimizadores son algoritmos que 
+    actualizan los pesos $w$ basándose en el cálculo del gradiente.
+    
+    El método fundamental es el \textbf{Descenso del Gradiente Estocástico (SGD)}. 
+    Matemáticamente, representa mover los parámetros en dirección opuesta a la 
+    derivada parcial del error:
+    
+    \begin{equation}
+        w_{t+1} = w_t - \eta \nabla L(w_t)
+        \label{eq:Descenso_grad}
+    \end{equation}
+    
+    Sin embargo, el SGD puro puede ser lento y propenso a quedarse atrapado en 
+    mínimos locales o puntos de silla, por lo que se han desarrollado variantes 
+    más avanzadas.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.42\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imagenes/Ejemplo_error.png}
+    \captionof{figure}{Representación de la superficie de error y la búsqueda de 
+    mínimos. Extraída de 
+    https://interactivechaos.com/es/manual/tutorial-de-deep-learning/conclusiones-partir-de-la-funcion-de-error}
+    \label{fig:Superficie_Error}
+\end{minipage}
+\vspace{0.5cm}
+
+\subsubsection{Método Momentum}
+Inspirado en la mecánica newtoniana, el método de Momentum introduce una variable 
+de velocidad física a la optimización. En lugar de actualizar los pesos basándose 
+únicamente en el gradiente instantáneo, el algoritmo acumula una media móvil 
+exponencial de los gradientes pasados \cite{rumelhart1986learning}.
+
+Matemáticamente, esto tiene dos efectos descritos en \cite{goodfellow2016deep}:
+\begin{enumerate}
+    \item \textbf{Amortiguación de oscilaciones:} En dimensiones donde el gradiente 
+    cambia de signo frecuentemente (direcciones ruidosas o paredes de un valle 
+    estrecho), los términos positivos y negativos se cancelan mutuamente en la 
+    media móvil.
+    \item \textbf{Aceleración direccional:} En dimensiones donde el gradiente 
+    mantiene el mismo signo consistentemente (a lo largo del fondo del valle), 
+    la variable de velocidad se acumula, permitiendo que el optimizador avance 
+    más rápido de lo que permitiría la tasa de aprendizaje estándar.
+\end{enumerate}
+
+\begin{equation}
+    \begin{aligned}
+    v_t &= \beta v_{t-1} + (1 - \beta) \nabla L(w_t) \\
+    w_{t+1} &= w_t - \eta v_t
+    \end{aligned}
+    \label{eq:Opt_Momentum}
+\end{equation}
+
+Donde $\beta \in [0, 1)$ es el hiperparámetro de momento (coeficiente de fricción o decaimiento).
+
+\textbf{Ventaja:} Permite moverse a través de mínimos locales poco profundos 
+gracias a la velocidad acumulada.
+
+\subsubsection{RMSprop (Root Mean Square Propagation)}
+Diseñado para abordar el problema de tasas de aprendizaje fijas. RMSprop normaliza 
+el gradiente dividiéndolo por una media móvil de su magnitud cuadrática. Esto 
+significa que los pesos con gradientes grandes tendrán una tasa de aprendizaje 
+efectiva menor para evitar inestabilidad, y viceversa.
+
+\begin{equation}
+    \begin{aligned}
+    S_t &= \beta S_{t-1} + (1 - \beta) (\nabla L(w_t))^2 \\
+    w_{t+1} &= w_t - \frac{\eta}{\sqrt{S_t} + \epsilon} \nabla L(w_t)
+    \end{aligned}
+    \label{eq:RMSprop}
+\end{equation}
+
+Donde:
+\begin{itemize}
+    \item $S_t$: Acumulador de la media móvil exponencial de los cuadrados del gradiente.
+    \item $\beta$: Factor de decaimiento (hiperparámetro, típicamente 0.9).
+    \item $\eta$: Tasa de aprendizaje inicial.
+    \item $\epsilon$: Término de estabilidad (usualmente $\approx 10^{-8}$) para evitar la división por cero.
+\end{itemize}
+
+\subsubsection{Adam (Adaptive Moment Estimation)}
+Combina lo mejor de dos mundos: la inercia del \textit{Momentum},
+estimación del primer momento, es decir, la media; y la adaptación del paso de \textit{RMSprop}, 
+estimación del segundo momento, es decir, varianza no centrada.
+
+\begin{equation}
+    \begin{aligned}
+    m_t &= \beta_1 m_{t-1} + (1 - \beta_1) \nabla L(w_t) \quad \text{(Estimación de media)}\\
+    v_t &= \beta_2 v_{t-1} + (1 - \beta_2) (\nabla L(w_t))^2 \quad \text{(Estimación de varianza)}\\
+    \hat{m}_t &= \frac{m_t}{1 - \beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1 - \beta_2^t} \quad \text{(Corrección de sesgo)}\\
+    w_{t+1} &= w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \hat{m}_t
+    \end{aligned}
+\end{equation}
+
+Donde:
+\begin{itemize}
+    \item $m_t$: Estimación del primer momento (la media) de los gradientes.
+    \item $v_t$: Estimación del segundo momento (la varianza no centrada) de los gradientes.
+    \item $\hat{m}_t, \hat{v}_t$: Estimaciones corregidas por sesgo. Dado que $m_0$ y $v_0$ se inicializan en 0, estas fórmulas compensan el sesgo hacia cero durante los primeros pasos de tiempo $t$.
+    \item $\beta_1, \beta_2$: Tasas de decaimiento exponencial para los momentos (valores estándar: $0.9$ y $0.999$ respectivamente).
+    \item $\eta$: Tasa de aprendizaje (step size).
+\end{itemize}
+
+\textbf{Ventaja:} Es robusto, requiere poco ajuste de hiperparámetros y converge 
+rápidamente en una amplia variedad de problemas.
+
+% --- REGULARIZACIÓN ---
+\subsection{Técnicas de Regularización}
+El objetivo del aprendizaje automático no es solo minimizar el error en los 
+datos de entrenamiento, sino generalizar a datos nuevos. La regularización 
+introduce restricciones matemáticas para evitar el sobreajuste (\textit{overfitting}).
+
+\begin{itemize}
+    \item \textbf{Regularización L1 (Lasso):} Añade una penalización proporcional 
+    al valor absoluto de los pesos ($\lambda |w|$). Esto tiende a generar vectores 
+    de pesos dispersos, forzando a que muchos pesos sean exactamente cero, lo que 
+    ayuda en la selección de características.
+    
+    \item \textbf{Regularización L2 (Ridge):} Añade una penalización proporcional 
+    al cuadrado de los pesos ($\lambda w^2$). Esto fuerza a que los pesos sean 
+    pequeños y difusos, evitando que una sola neurona domine la decisión.
+    
+    \item \textbf{Dropout:} Una técnica empírica poderosa que consiste en 
+    «apagar» aleatoriamente un porcentaje $p$ de neuronas durante cada paso del 
+    entrenamiento. Esto evita la coadaptación compleja de neuronas, obligando 
+    a la red a aprender características robustas y redundantes. Matemáticamente, 
+    equivale a entrenar un ensamble bastante grande de sub-redes diferentes.
+\end{itemize}
+
+\section{Caso práctico}
+
+Para validar los conceptos teóricos desarrollados, se diseñó e implementó una red 
+neuronal profunda (DNN) para una tarea de clasificación de imágenes. El objetivo 
+fue evaluar el impacto de los diferentes hiperparámetros y optimizadores en el 
+rendimiento del modelo.
+
+\subsection{Arquitectura del Modelo}
+
+El diseño de la red neuronal se fundamentó en una arquitectura de perceptrón 
+multicapa (MLP) con una estructura de «embudo», reduciendo progresivamente la 
+dimensionalidad de los datos a medida que se avanza en la profundidad de la red. 
+Esto fuerza al modelo a aprender características cada vez más abstractas y compactas.
+
+La configuración de la red se detalla a continuación:
+
+\begin{itemize}
+    \item \textbf{Capa de Entrada:} Consta de 784 neuronas. Esta dimensión deriva 
+    de la naturaleza de los datos de entrada, que son imágenes de $28 \times 28$ 
+    píxeles aplanadas ($28 \times 28 = 784$).
+    \item \textbf{Capas Ocultas:} Se implementaron cuatro capas densas consecutivas 
+    con 512, 256, 128 neuronas respectivamente.
+    \item \textbf{Capa de Salida:} Compuesta por 10 neuronas, correspondientes a 
+    las 10 clases posibles de clasificación del dataset.
+\end{itemize}
+
+
+
+Para el funcionamiento correcto de esta arquitectura, se seleccionaron los 
+siguientes componentes clave:
+\begin{enumerate}
+    \item \textbf{Funciones de activación:} Se utilizó \textit{ReLU} en las capas 
+    ocultas para mitigar el desvanecimiento del gradiente y acelerar la convergencia, 
+    y \textit{Softmax} en la salida para obtener probabilidades.
+    \item \textbf{Función de pérdida:} Se eligió la \textit{Categorical Cross 
+    Entropy} dada la naturaleza multiclase del problema.
+    \item \textbf{Optimizador:} Se optó por el algoritmo \textit{Adam} debido a su 
+    eficiencia adaptativa.
+    \item \textbf{Regularización:} Para combatir el sobreajuste se implementaron 
+    técnicas de penalización L2 y capas de \textit{Dropout}.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagenes/Arquitectura.png}
+        \caption{Diagrama de bloques de la estructura de la red [784, 512, 256, 
+        128, 10].}
+        \label{fig:Arquitectura_bloques}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagenes/Arquitectura_codigo.png}
+        \caption{Implementación en código de la arquitectura del modelo.}
+        \label{fig:Codigo_modelo}
+    \end{minipage}
+\end{figure}
+
+\subsection{Entrenamiento y Evaluación}
+
+El proceso de entrenamiento se configuró para ejecutarse durante un máximo de 
+60 épocas. Para garantizar la reproducibilidad y modularidad del código, se 
+definieron funciones específicas encargadas de iterar sobre el dataset, realizar 
+el paso hacia adelante (\textit{forward pass}), calcular el error y ejecutar la 
+retropropagación (\textit{backward pass}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{imagenes/Código_3.png}
+    \caption{Función de entrenamiento automatizada.}
+    \label{fig:Codigo_entrenamiento}
+\end{figure}
+
+Para cuantificar el desempeño del modelo más allá de la función de pérdida, se 
+implementó una métrica de exactitud (\textit{accuracy}). Esta métrica representa 
+la proporción de predicciones correctas sobre el total de muestras evaluadas:
+
+\begin{equation}
+    Accuracy = \frac{\text{No. de Aciertos}}{\text{No. Total de Muestras}}
+\end{equation}
+
+Esta métrica se calcula al final de cada época utilizando una función de evaluación 
+dedicada, que opera sobre un conjunto de datos de validación separado del 
+entrenamiento.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{imagenes/Código_4.png}
+    \caption{Función de evaluación para cálculo del accuracy.}
+    \label{fig:Codigo_evaluacion}
+\end{figure}
+
+\section{Resultados}
+
+El análisis de resultados se dividió en dos fases experimentales. En la primera 
+fase, se compararon diferentes marcos de trabajo (Keras vs PyTorch) y funciones 
+de activación básicas. En la segunda fase, se profundizó en el ajuste fino de 
+hiperparámetros y técnicas de regularización.
+
+\subsection{Fase 1: Comparativa de Modelos Base}
+Las primeras cuatro versiones del modelo mostraron tiempos de entrenamiento 
+similares, oscilando entre los 26 y 30 minutos. Los resultados obtenidos se 
+resumen en la Tabla \ref{tab:Modelos_1}.
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.2} % Espaciado para que se vea mejor
+    \begin{tabular}{|c|l|c|c|c|c|}
+        \hline
+        \textbf{Framework} & \textbf{Activadores} & \textbf{Pérdida} & 
+        \textbf{Optimizador} & \textbf{Loss} & \textbf{Acc} \\ \hline
+        Keras & Sigmoid, Softmax & C. Cross Ent. & Adam & 0.1202 & 0.9819 \\ \hline
+        Keras & ReLU, Softmax & C. Cross Ent. & Adam & 0.0943 & 0.9722 \\ \hline
+        Keras* & ReLU, Softmax & C. Cross Ent. & Adam & 0.1016 & 0.9698 \\ \hline
+        PyTorch & ReLU, Softmax & C. Cross Ent. & RMSprop & 1.4876 & 0.9737 \\ \hline
+    \end{tabular}
+    \caption{Resultados de la primera ronda de experimentación. Se observa una 
+    consistencia en el accuracy cercano al 97-98\%.}
+    \label{tab:Modelos_1}
+\end{table}
+
+Se observa que, aunque el uso de la función Sigmoid obtuvo el accuracy más alto 
+(98.19\%), los modelos con ReLU mostraron un comportamiento más robusto en términos 
+de convergencia de la función de pérdida (0.0943). Cabe destacar la diferencia 
+significativa en el valor de pérdida del modelo en PyTorch con RMSprop, lo cual 
+sugiere una sensibilidad distinta en la inicialización de pesos o en la tasa de 
+aprendizaje del optimizador.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.65\linewidth]{imagenes/Gráficas_juntas.png}
+    \caption{Curvas de aprendizaje de los modelos de la primera fase. Se grafica 
+    epocas vs pérdida. La diferencia entre la perdida entre training y validación
+    significa un sobreajuste, es decir, el modelo está «memorizando» en lugar de 
+    aprendiendo}
+    \label{fig:Resultados_Fase1}
+\end{figure}
+
+\subsection{Fase 2: Optimización y Regularización}
+En esta etapa, el tiempo de entrenamiento aumentó al rango de 45-52 minutos debido 
+a la introducción de regularizadores y la extensión de las pruebas. Se mantuvo el 
+uso de ReLU en capas ocultas y Softmax en la salida. 
+
+Un hallazgo crítico fue la identificación de sobreajuste (\textit{overfitting}) 
+temprano. En el experimento 4, a pesar de estar programado para 60 épocas, el 
+modelo comenzó a sobreajustar (el error de validación aumentaba mientras el de 
+entrenamiento bajaba) alrededor de la época 15. Se aplicó una técnica de 
+\textit{Check point} manual, guardando el modelo en ese punto óptimo.
+
+
+
+\begin{table}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        \textbf{Exp.} & \textbf{Épocas} & \textbf{Learning Rate} & 
+        \textbf{Regularizador} & \textbf{Loss} & \textbf{Accuracy} \\ \hline
+        1 & 60 & $5 \times 10^{-6}$ & Dropout & 0.0856 & 0.9728 \\ \hline
+        2 & 60 & $5 \times 10^{-6}$ & L2 & 0.0927 & 0.9723 \\ \hline
+        3 & 60 & $5 \times 10^{-6}$ & Dropout + L2 & 0.0857 & 0.9733 \\ \hline
+        \textbf{4} & \textbf{60 (15)} & \textbf{$1 \times 10^{-4}$} & 
+        \textbf{Dropout + L2} & \textbf{0.0621} & \textbf{0.9829} \\ \hline
+    \end{tabular}
+    }
+    \caption{Resultados de la segunda ronda. El experimento 4 representa el modelo 
+    final con un guardado temprano.}
+    \label{tab:Modelos_2}
+\end{table}
+
+El modelo 4 logró el mejor desempeño global (Accuracy: 98.29\%, Loss: 0.0621) al 
+combinar una tasa de aprendizaje mayor ($10^{-4}$) con una estrategia de check point, 
+lo que evitó la degradación del rendimiento por sobreajuste.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{imagenes/Gráficas_juntas_2.png}
+    \caption{Comparativa del desempeño del mejor modelo (Exp. 4) frente a las 
+    iteraciones previas.}
+    \label{fig:Mejor_Resultado}
+\end{figure}
+
+\section{Conclusiones}
+
+El desarrollo e implementación de estas redes neuronales permite extraer las 
+siguientes conclusiones fundamentales sobre el comportamiento del aprendizaje 
+profundo:
+
+\begin{itemize}
+    \item \textbf{Divergencia entre Accuracy y Pérdida:} Se observó 
+    experimentalmente que es posible que la función de pérdida aumente mientras 
+    el accuracy se mantiene estable. Esto ocurre cuando el modelo sigue 
+    clasificando correctamente las muestras, pero con una \textit{confianza} 
+    (probabilidad) menor, o cuando clasifica erróneamente unas pocas muestras 
+    con una confianza extremadamente alta, lo que 
+    penaliza severamente la entropía cruzada.
+    
+    \item \textbf{Impacto de la Regularización:} La combinación de técnicas de 
+    regularización (Dropout + L2) demostró ser eficaz para prevenir el sobreajuste. 
+    Esto tuvo un efecto colateral positivo: permitió utilizar una tasa de 
+    aprendizaje (\textit{learning rate}) más agresiva sin desestabilizar el 
+    entrenamiento, reduciendo así el tiempo necesario para alcanzar la 
+    convergencia.
+    
+    \item \textbf{Costo Computacional:} Los procesos de entrenamiento de redes 
+    profundas demandan recursos computacionales significativos. El aumento de 
+    complejidad en la arquitectura y el número de épocas impacta linealmente en 
+    el tiempo de ejecución, lo que resalta la importancia de técnicas como el 
+    \textit{Early Stopping} y/o \textit{check point} para optimizar el uso de 
+    recursos.
+\end{itemize}

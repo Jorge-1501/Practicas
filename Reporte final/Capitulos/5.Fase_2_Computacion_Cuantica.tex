@@ -1,0 +1,747 @@
+%--- MARZO-ABRIL ---
+\chapter{Computación cuántica}
+\section{Introducción}
+En esta sección se desarrollan conceptos básicos de la computación cuántica para poder
+desarrollar después un proyecto aplicando dichos conceptos. Particularmente en este 
+capítulo se resumen los fundamentos de la computación cuántica. Donde se abordaron 
+conceptos clave como:
+\begin{itemize}
+    \item Qubits y superposición.
+    \item Entrelazamiento cuántico.
+    \item Compuertas cuánticas (Hadamard, CNOT, Pauli-X, etc.).
+    \item Principales algoritmos cuánticos (Grover, Shor, etc.).
+\end{itemize}
+
+
+El proyecto principal fue el desarrollo de una implementación funcional del 
+algoritmo de Shor. La investigación incluyó un estudio profundo de:
+\begin{itemize}
+    \item \textbf{Criptografía y el sistema RSA:} Comprensión del mecanismo de 
+    clave pública-privada y su vulnerabilidad ante la factorización de números 
+    grandes.
+    \item \textbf{Teoría de Números:} Conceptos como la aritmética modular y la 
+    función totiente de Euler, fundamentales para el algoritmo.
+    \item \textbf{Transformada Cuántica de Fourier (QFT):} El núcleo cuántico del 
+    algoritmo de Shor, que permite encontrar el periodo de una función de manera 
+    eficiente.
+\end{itemize}
+
+Se entregaron dos productos principales: un script de Python (.py) y un Jupyter 
+Notebook (.ipynb) que demuestran el proceso completo de encriptar un mensaje con 
+RSA y utilizar el algoritmo de Shor para factorizar la clave pública y desencriptar 
+el mensaje.
+
+\begin{lstlisting}[language=Python, caption={Ejemplo de código para una compuerta 
+    cuántica en Python}]
+import cirq
+
+# Create a circuit
+qubit = cirq.GridQubit(0, 0)
+circuit = cirq.Circuit(
+    cirq.H(qubit),  # Hadamard gate
+    cirq.measure(qubit, key='m')  # Measurement
+)
+print("Circuit:")
+print(circuit)
+\end{lstlisting}
+
+
+
+\section{Fundamentos de la computación cuántica}
+
+La computación cuántica no debe entenderse solamente como una continuación 
+de la ley de Moore o una mejora incremental en la velocidad de los 
+procesadores actuales. Se trata, fundamentalmente, de un paradigma distinto 
+del procesamiento de información que aprovecha las propiedades no intuitivas 
+de la mecánica cuántica —como la superposición y el entrelazamiento— para 
+resolver problemas que son extremadamente complejos o intratables para la 
+computación clásica.
+
+Como definen Nielsen y Chuang en su texto:
+
+\begin{quotation}
+    \textit{La computación cuántica y la información cuántica son el estudio
+    de las tareas de procesamiento de información que se pueden conseguir
+    usando sistemas de mecánica cuántica.} \cite{nielsen_chuang}
+\end{quotation}
+
+Este campo es interdisciplinario y surge de la convergencia de dos grandes 
+revoluciones científicas importantes del siglo XX: la mecánica cuántica 
+y las ciencias de la computación. A continuación, se detalla el contexto 
+histórico de ambas vertientes y el momento inevitable de su colisión.
+
+\subsection{Computación cuántica y contexto histórico}
+
+La historia de la computación cuántica es la historia de cómo los físicos 
+se dieron cuenta de que la información es física, y de cómo los informáticos 
+comprendieron que la computación es un proceso físico limitado por las leyes 
+de la naturaleza.
+
+\subsubsection{Mecánica cuántica}
+
+A finales del siglo XIX, la física clásica parecía ser una área de estudio 
+casi completa, regida por la mecánica newtoniana y el electromagnetismo de 
+Maxwell. Sin embargo, existían discrepancias experimentales, que en ese 
+tiempo se creían menores pero amenazaban a las bases de la física. 
+La más notable fue la llamada \textit{Catástrofe Ultravioleta}. 
+
+Según la teoría clásica, un cuerpo negro en equilibrio térmico debería 
+emitir una cantidad infinita de energía a medida que la longitud de onda 
+disminuye hacia el ultravioleta. Este resultado hizo que Max Planck, en 1900, 
+postulara que la energía no es continua, sino que se intercambia en 
+paquetes discretos o \textit{cuantos}.
+
+Posteriormente, con la explicación del efecto fotoeléctrico de Einstein y 
+el desarrollo del modelo atómico de Bohr, se determinó a escalas 
+microscópicas la naturaleza no se comporta de forma determinista. 
+La formulación matemática llegó en la década de 
+1920 con Schrödinger y Heisenberg, estableciendo que el estado de un 
+sistema no está definido por variables deterministas, sino por un vector 
+de estado en un espacio de Hilbert complejo.
+
+Este cambio de paradigma trajo consigo el concepto de 
+\textit{superposición}: un sistema puede existir en una combinación lineal 
+de múltiples estados posibles hasta que es medido. Durante décadas, estas 
+propiedades se consideraron curiosidades del mundo subatómico, sin relación 
+aparente con la lógica o el cálculo.
+
+\subsubsection{Ciencias computacionales}
+
+Paralelamente a la revolución cuántica, las matemáticas
+atravesaban su propia crisis de fundamentos. En 1936, Alan Turing formalizó 
+el concepto de «algoritmo» y «computación» mediante una construcción 
+teórica que hoy conocemos como la \textbf{Máquina de Turing} 
+\cite{turing1936computable}.
+
+Una Máquina de Turing consiste, abstractamente, en una cinta infinita 
+dividida en celdas, una cabeza lectora/escritora que se mueve sobre la 
+cinta, y un conjunto finito de reglas, o estados, que dictan qué hacer en 
+función del símbolo leído. La tesis de Church-Turing establece que 
+cualquier función que pueda ser calculada por un algoritmo físico, puede 
+ser calculada por una Máquina de Turing.
+
+Durante casi medio siglo, la computación se desarrolló bajo la asunción 
+implícita de que la Máquina de Turing universal podía simular eficientemente 
+cualquier proceso físico. Sin embargo, a medida que los físicos intentaban 
+simular sistemas cuánticos (como interacciones moleculares complejas) en 
+computadoras clásicas, se percataron que la complejidad es exponencial. Para 
+describir un sistema de $n$ partículas cuánticas, se requiere $2^n$ coeficientes
+complejos, esta cifra crece tan rápido que vuelve completamente impráctico
+simular sistemas pequeños de pocas moléculas, aún para sistemas de supercómputo.
+
+\textbf{El nacimiento de la computación cuántica}
+
+El punto de inflexión ocurrió en 1982, durante una conferencia en el MIT, cuando el 
+físico Richard Feynman (e independientemente Yuri Manin) propuso una idea: 
+si simular la física cuántica es computacionalmente costoso para una máquina clásica 
+debido a la explosión exponencial del espacio de Hilbert, ¿por qué no construir 
+una computadora que sea, en sí misma, un sistema cuántico?
+
+En sus propias palabras, Feynman declaró:
+
+\begin{quotation}
+    \textit{Nature isn't classical, dammit, and if you want to make a simulation 
+    of nature, you'd better make it quantum mechanical, and by golly it's a 
+    wonderful problem, because it doesn't look so easy.} 
+    \cite{feynman1982simulating}
+\end{quotation}
+
+Esta propuesta cambió el objetivo: en lugar de luchar contra la mecánica cuántica, 
+tratando de minimizar efectos cuánticos en transistores cada vez más pequeños, 
+se propuso aprovecharla.
+
+En 1985, David Deutsch formalizó esta idea definiendo la \textbf{Máquina de Turing 
+Cuántica Universal} \cite{deutsch1985quantum}, demostrando que tal máquina podría 
+simular cualquier sistema físico de manera eficiente. La ventaja cuántica dejó 
+de ser una especulación teórica en la década de los 90 con el descubrimiento de 
+algoritmos que superaban a sus contrapartes clásicas:
+
+\begin{itemize}
+    \item \textbf{Algoritmo de Deutsch-Jozsa (1992):} Fue uno de los primeros 
+    ejemplos deterministas de que una computadora cuántica podía resolver un 
+    problema con menos consultas que una clásica.
+    \item \textbf{Algoritmo de Shor (1994):} Peter Shor demostró que una 
+    computadora cuántica podía factorizar números enteros en tiempo polinómico, 
+    amenazando la seguridad de los sistemas criptográficos RSA actuales \cite{shor94}.
+    \item \textbf{Algoritmo de Grover (1996):} Proveyó una aceleración cuadrática 
+    para la búsqueda en bases de datos no estructuradas.
+\end{itemize}
+
+Estos hitos cimentaron a la computación cuántica no solo como una herramienta para 
+simular física, sino como un nuevo paradigma computacional con implicaciones 
+profundas en criptografía, optimización e inteligencia artificial.
+
+
+\subsection{Qubits y estados cuánticos}
+
+En la computación clásica, la unidad fundamental de información es el \textit{bit}, 
+el cual puede existir en uno de dos estados discretos: 0 o 1. Por otro lado, la 
+computación cuántica se construye sobre el concepto de \textbf{qubit} (quantum bit). 
+Físicamente, un qubit es un sistema cuántico de dos niveles, que puede realizarse 
+mediante el espín de un electrón, la polarización de un fotón o niveles de energía 
+discretos en un átomo \cite{nielsen_chuang}.
+
+Matemáticamente, el estado de un qubit, denotado como el ket $|\psi\rangle$, es un vector 
+en un espacio vectorial complejo de dos dimensiones (Espacio de Hilbert $\mathcal{H} 
+= \mathbb{C}^2$). A diferencia del bit clásico, el qubit puede existir en un estado 
+de \textit{superposición} lineal de sus estados base:
+
+\begin{equation}
+    |\psi\rangle = \alpha |0\rangle + \beta |1\rangle
+    \label{eq:superposicion}
+\end{equation}
+
+Donde $\alpha$ y $\beta$ son números complejos conocidos como \textit{amplitudes 
+de probabilidad}. Los estados $|0\rangle$ y $|1\rangle$ forman la llamada 
+\textbf{base computacional} (o base canónica $Z$) y se representan vectorialmente 
+como:
+
+\noindent
+\begin{minipage}{0.5\textwidth}
+    \begin{equation}
+        |0\rangle = \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+        \label{eq:Vec0}
+    \end{equation}
+\end{minipage}%
+\begin{minipage}{0.5\textwidth}
+    \begin{equation}
+        |1\rangle = \begin{bmatrix} 0 \\ 1 \end{bmatrix}
+        \label{eq:Vec1}
+    \end{equation}
+\end{minipage}
+\vspace{0.5cm}
+
+Un postulado fundamental de la mecánica cuántica es que no podemos observar 
+directamente las amplitudes $\alpha$ y $\beta$. Al realizar una medición en la 
+base estándar, el qubit colapsa al estado $|0\rangle$ con probabilidad 
+$|\alpha|^2$ o al estado $|1\rangle$ con probabilidad $|\beta|^2$. Debido a la 
+conservación de la probabilidad total, se impone la condición de normalización:
+
+\begin{equation}
+    |\alpha|^2 + |\beta|^2 = 1
+\end{equation}
+
+Una herramienta visual indispensable para entender el estado de un qubit individual 
+es la \textbf{Esfera de Bloch}. Dado que los factores de fase global no tienen 
+consecuencias observables, podemos reescribir el estado general como $|\psi\rangle 
+= \cos(\theta/2)|0\rangle + e^{i\phi}\sin(\theta/2)|1\rangle$. Esto permite mapear 
+cualquier estado puro a un punto sobre la superficie de una esfera unitaria, donde 
+el polo norte representa $|0\rangle$ y el polo sur $|1\rangle$.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.55\linewidth]{imagenes/bloch_sphere.png}
+    \caption{Representación geométrica de un qubit en la Esfera de Bloch. Los 
+    estados de superposición se encuentran en el ecuador o latitudes intermedias. 
+    Tomado de Nielsen \& Chuang \cite{nielsen_chuang}.}
+    \label{fig:Bloch_sphere}
+\end{figure}
+
+
+
+\subsection{Otras bases y representaciones}
+
+Aunque la base computacional $\{|0\rangle, |1\rangle\}$ es la más utilizada para la 
+medición final, los algoritmos cuánticos frecuentemente requieren rotar el estado a 
+otras bases ortonormales para aprovechar la interferencia cuántica.
+
+Una de las bases más importantes es la \textbf{base Hadamard} (o base $X$), 
+compuesta por los vectores $|+\rangle$ y $|-\rangle$. Estos estados representan 
+superposiciones equitativas y se definen como:
+
+\begin{equation}
+    \begin{aligned}
+        |+\rangle &= \frac{|0\rangle + |1\rangle}{\sqrt{2}} \\
+        |-\rangle &= \frac{|0\rangle - |1\rangle}{\sqrt{2}}
+    \end{aligned}
+    \label{eq:Bases_masmenos}
+\end{equation}
+
+Físicamente, si $|0\rangle$ y $|1\rangle$ representan espín arriba y abajo en el 
+eje Z, $|+\rangle$ y $|-\rangle$ representan espín arriba y abajo a lo largo del 
+eje X.
+
+\subsubsection{Sistemas de múltiples qubits}
+El verdadero poder de la computación cuántica surge cuando combinamos múltiples 
+qubits. El espacio de estados de un sistema compuesto se describe mediante el 
+\textit{producto tensorial} ($\otimes$) de los espacios individuales. Para un 
+sistema de $n$ qubits, el espacio resultante tiene dimensión $2^n$.
+
+Por convención, a menudo usamos la notación decimal para simplificar la 
+representación de los estados base. Por ejemplo, para un sistema de 5 qubits 
+($n=5$), el estado binario $|10100\rangle$ se puede escribir como:
+
+\begin{equation*}
+    |10100\rangle \equiv |1\rangle \otimes |0\rangle \otimes |1\rangle \otimes 
+    |0\rangle \otimes |0\rangle \equiv |20\rangle
+\end{equation*}
+
+Esto es crucial para algoritmos como el de Shor, donde manipulamos registros 
+que representan números enteros grandes mediante estados cuánticos.
+
+\subsection{Compuertas y circuitos cuánticos}
+
+De manera análoga a la computación clásica, donde las puertas lógicas (AND, OR, 
+NOT) manipulan bits, en la computación cuántica se utilizan \textbf{compuertas 
+cuánticas} para manipular qubits. Sin embargo, existe una restricción fundamental: 
+debido a que la evolución temporal de un sistema cuántico cerrado debe preservar 
+la norma del vector de estado (conservación de la probabilidad), todas las 
+compuertas cuánticas deben ser representadas por \textbf{matrices unitarias}.
+
+Una matriz $U$ es unitaria si su inversa es igual a su transpuesta conjugada 
+($U^\dagger U = I$). Esto implica que, a diferencia de muchas compuertas clásicas, 
+\textbf{todas las compuertas cuánticas son reversibles}.
+
+A continuación, se presentan las compuertas de un solo qubit más relevantes, las 
+cuales forman los bloques constructivos de algoritmos complejos 
+\cite{nielsen_chuang}:
+
+\subsubsection{Matrices de Pauli}
+Son fundamentales tanto en computación como en la física.
+
+\noindent
+\begin{minipage}{0.32\textwidth}
+    \centering
+    \textbf{Identidad ($I$)}
+    \begin{equation}
+        I = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}
+        \label{eq:identidad}
+    \end{equation}
+    No altera el estado.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.32\textwidth}
+    \centering
+    \textbf{Pauli-X (NOT)}
+    \begin{equation}
+        X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}
+        \label{eq:PauliX}
+    \end{equation}
+    Invierte las amplitudes: $\alpha|0\rangle + \beta|1\rangle \to \beta|0\rangle 
+    + \alpha|1\rangle$.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.32\textwidth}
+    \centering
+    \textbf{Pauli-Z (Phase)}
+    \begin{equation}
+        Z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}
+        \label{eq:PauliZ}
+    \end{equation}
+    Introduce una fase relativa: $\alpha|0\rangle + \beta|1\rangle \to 
+    \alpha|0\rangle - \beta|1\rangle$.
+\end{minipage}
+
+\vspace{0.5cm}
+
+\subsubsection{Compuertas de Superposición y Fase}
+
+\noindent
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \textbf{Compuerta Hadamard ($H$)}
+    \begin{equation}
+        H = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}
+        \label{eq:Hadamard}
+    \end{equation}
+    Es una compuerta muy importante, ya que crea superposición. 
+    Transforma estados base definidos en estados de probabilidad equitativa: 
+    $|0\rangle \to |+\rangle$.
+\end{minipage}%
+\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \textbf{Compuerta T ($\pi/8$)}
+    \begin{equation}
+        T = \begin{pmatrix} 1 & 0 \\ 0 & e^{i \pi /4} \end{pmatrix}
+        \label{eq:PhaseT}
+    \end{equation}
+    Añade una fase arbitraria necesaria para la computación cuántica universal.
+\end{minipage}
+
+\subsubsection{Circuitos Cuánticos}
+Los algoritmos se representan visualmente mediante diagramas de circuitos. 
+En estos diagramas, las líneas horizontales representan la evolución temporal 
+de los qubits (de izquierda a derecha), y los bloques representan la aplicación 
+de compuertas. A diferencia de los circuitos eléctricos, las líneas no son cables 
+físicos, sino la trayectoria de la información cuántica en el tiempo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\linewidth]{imagenes/Quantum_circuit.png}
+    \caption{Ejemplo esquemático de un circuito cuántico. La lectura se realiza 
+    de izquierda (entrada) a derecha (medición). Tomado de Nielsen \& Chuang 
+    \cite{nielsen_chuang}.}
+    \label{fig:quantum_circuit_1}
+\end{figure}
+
+
+\section{Algoritmos cuánticos}
+
+La promesa de la computación cuántica no reside en aumentar la velocidad de reloj 
+de los procesadores, sino en cambiar la complejidad computacional fundamental de 
+los problemas. Mientras que la computación clásica procesa datos de manera 
+secuencial (o con paralelismo físico limitado), los algoritmos cuánticos aprovechan 
+las propiedades del espacio de Hilbert para evaluar múltiples posibilidades 
+simultáneamente.
+
+\subsection{Paralelismo}
+Una pregunta fundamental en la optimización de algoritmos es: \textit{¿Cómo podemos 
+resolver un problema más rápido?} Tradicionalmente, esto se reestructura como: 
+\textbf{¿Cómo podemos hacer muchas cosas a la vez?}
+
+En el cómputo clásico, distinguimos dos tipos de paralelismo:
+
+\begin{itemize}
+    \item \textbf{Paralelismo trivial (Embarrassingly parallel):} Ocurre en tareas 
+    donde los sub-problemas son completamente independientes. Un ejemplo es la suma 
+    de un arreglo numérico gigante; podemos dividir el arreglo en lotes, enviarlos 
+    a diferentes núcleos (CPUs) y sumar los resultados finales. Aquí, añadir más 
+    hardware escala linealmente el rendimiento.
+    
+    \item \textbf{Paralelismo no trivial (Non-embarrassingly parallel):} Ocurre en 
+    problemas donde existe una fuerte dependencia entre los datos. Por ejemplo, en 
+    la inversión de una matriz, cada elemento de la matriz inversa depende 
+    potencialmente de todos los elementos de la matriz original. En estos casos, 
+    simplemente añadir más procesadores no resuelve la complejidad inherente del 
+    algoritmo.
+\end{itemize}
+
+La computación cuántica introduce un tercer tipo: el \textbf{Paralelismo Cuántico}. 
+Gracias al principio de superposición, una computadora cuántica puede evaluar una 
+función $f(x)$ para todos los posibles valores de entrada $x$ simultáneamente, 
+utilizando un solo circuito. Sin embargo, el reto no es calcular todos los 
+resultados, sino acceder a ellos, ya que la medición colapsa el estado a una sola 
+respuesta aleatoria. El arte del diseño de algoritmos cuánticos consiste en 
+manipular estas probabilidades para que la respuesta correcta emerja.
+
+\subsection{Estructura general de un algoritmo cuántico}
+A pesar de la variedad de aplicaciones, la mayoría de los algoritmos cuánticos 
+siguen una arquitectura canónica de cuatro etapas \cite{nielsen_chuang}:
+
+\begin{enumerate}
+    \item \textbf{Inicialización:} Se prepara el registro de qubits en un estado 
+    cuántico conocido y controlable, típicamente el estado base $|0\rangle^{\otimes 
+    n}$.
+    \item \textbf{Procesamiento Cuántico:} Se aplica una secuencia de compuertas 
+    lógicas (transformaciones unitarias). En esta etapa se generan superposiciones 
+    para explorar el espacio de soluciones y se utiliza el entrelazamiento para 
+    correlacionar qubits.
+    \item \textbf{Medición:} Se realiza una medición en la base computacional. 
+    Esto rompe la coherencia del sistema, colapsando la función de onda y 
+    entregando un resultado clásico (bit).
+    \item \textbf{Interpretación:} Los resultados clásicos obtenidos (a menudo 
+    estadísticos, requiriendo múltiples ejecuciones o «shots») se traducen a la 
+    solución del problema original.
+\end{enumerate}
+
+\subsection{Algoritmo de Deutsch}
+Propuesto por David Deutsch en 1985, este fue el primer algoritmo en demostrar una 
+separación entre lo que es posible clásicamente y lo que es posible cuánticamente.
+
+\textbf{El Problema:} Dada una función booleana de una variable $f: \{0,1\} \to 
+\{0,1\}$ (una «caja negra» u oráculo), determinar si la función es:
+\begin{itemize}
+    \item \textbf{Constante:} $f(0) = f(1)$ (ambos son 0 o ambos son 1).
+    \item \textbf{Balanceada:} $f(0) \neq f(1)$ (uno es 0 y el otro 1).
+\end{itemize}
+
+Clásicamente, necesitamos evaluar la función dos veces ($f(0)$ y luego $f(1)$) 
+para comparar los resultados. El algoritmo de Deutsch resuelve esto con \textbf{una 
+sola evaluación} del oráculo.
+
+\subsubsection{El mecanismo de Retroceso de Fase (Phase Kickback)}
+
+Un concepto fundamental para comprender cómo los algoritmos cuánticos extraen 
+información global de una función es el \textit{Phase Kickback}. Clásicamente, 
+consultar una función (leer un bit) no modifica la entrada. Sin embargo, en 
+mecánica cuántica, la aplicación de una compuerta controlada puede alterar el 
+estado del qubit de control dependiendo del estado del qubit objetivo.
+
+Consideremos el oráculo unitario estándar $U_f$ que actúa como $U_f |x\rangle 
+|y\rangle = |x\rangle |y \oplus f(x)\rangle$. Si preparamos el qubit objetivo 
+$|y\rangle$ no en un estado base, sino en el estado de superposición $|-\rangle 
+= \frac{|0\rangle - |1\rangle}{\sqrt{2}}$, ocurre un fenómeno de interferencia 
+interesante.
+
+Al aplicar el operador $U_f$:
+\begin{equation}
+    U_f |x\rangle |-\rangle = |x\rangle \left( \frac{|0 \oplus f(x)\rangle - 
+    |1 \oplus f(x)\rangle}{\sqrt{2}} \right)
+\end{equation}
+
+Analizando el comportamiento según el valor de $f(x)$:
+\begin{itemize}
+    \item Si $f(x) = 0$, el estado del segundo qubit permanece inalterado: 
+    $|-\rangle$.
+    \item Si $f(x) = 1$, se aplica una operación NOT, invirtiendo los estados: 
+    $\frac{|1\rangle - |0\rangle}{\sqrt{2}} = -|-\rangle$.
+\end{itemize}
+
+Podemos unificar ambos casos factorizando el signo. El estado $|-\rangle$ es, 
+de hecho, un eigenestado del operador $X$ con eigenvalor $-1$. Por lo tanto, 
+el oráculo escribe este eigenvalor en la fase global del sistema:
+
+\begin{equation}
+    U_f |x\rangle |-\rangle = (-1)^{f(x)} |x\rangle |-\rangle
+\end{equation}
+
+Crucialmente, dado que el qubit objetivo $|-\rangle$ permanece inalterado 
+(salvo por el signo), podemos reasignar este factor de fase al qubit de 
+control $|x\rangle$. De esta forma, la información de la función $f(x)$, 
+que originalmente estaba codificada en el bit de paridad del objetivo, ha 
+«retrocedido» (kicked back) hacia la fase relativa del registro de entrada, 
+permitiéndonos medirla posteriormente mediante interferencia.
+
+\textbf{Procedimiento:}
+El algoritmo utiliza dos qubits inicializados en $|0\rangle|1\rangle$.
+\begin{enumerate}
+    \item \textbf{Superposición:} Aplicamos compuertas Hadamard a ambos qubits 
+    ($H \otimes H$), creando un estado de superposición equitativa.
+    \item \textbf{Oráculo ($U_f$):} Aplicamos la función mediante una 
+    transformación unitaria. Debido al fenómeno de \textit{retroceso de fase}, 
+    la información de $f(x)$ no se escribe en el qubit objetivo, 
+    sino que se transfiere a la fase relativa del qubit de control:
+    \begin{equation}
+        |x\rangle \left( \frac{|0\rangle - |1\rangle}{\sqrt{2}} \right) 
+        \xrightarrow{U_f} (-1)^{f(x)} |x\rangle \left( \frac{|0\rangle - 
+        |1\rangle}{\sqrt{2}} \right)
+    \end{equation}
+    \item \textbf{Interferencia:} Aplicamos una compuerta Hadamard final al 
+    primer qubit. La interferencia destructiva o constructiva dependerá de si los 
+    términos $(-1)^{f(0)}$ y $(-1)^{f(1)}$ tienen el mismo signo o no.
+    \item \textbf{Medición:} Medimos el primer qubit.
+\end{enumerate}
+
+\textbf{Resultado:} Si medimos $|0\rangle$, la función es constante. Si medimos 
+$|1\rangle$, es balanceada. Esto demuestra una ventaja de velocidad de $2$ a $1$ 
+sobre la computación clásica.
+
+\subsection{Algoritmo de Deutsch-Jozsa}
+Este algoritmo generaliza el problema anterior para una función de $n$ variables 
+$f: \{0,1\}^n \to \{0,1\}$. Nuevamente, se garantiza que la función es constante 
+(misma salida para todas las entradas) o balanceada (0 para la mitad de las 
+entradas, 1 para la otra mitad).
+
+\textbf{Comparativa de complejidad:}
+\begin{itemize}
+    \item \textbf{Clásica:} En el peor de los casos, necesitamos evaluar la 
+    función $2^{n-1} + 1$ veces para estar 100\% seguros.
+    \item \textbf{Cuántica:} El algoritmo de Deutsch-Jozsa resuelve el problema 
+    con \textbf{una sola evaluación} del oráculo, ofreciendo una ventaja 
+    exponencial determinista.
+\end{itemize}
+
+\textbf{Desarrollo Matemático:}
+\begin{enumerate}
+    \item \textbf{Inicialización:} Comenzamos con un registro de $n$ qubits en 
+    $|0\rangle$ y un qubit auxiliar en $|1\rangle$:
+    \begin{equation}
+        |\psi_0\rangle = |0\rangle^{\otimes n} |1\rangle
+    \end{equation}
+    
+    \item \textbf{Superposición:} Aplicamos compuertas Hadamard a todo el 
+    registro. Esto genera una superposición de todos los $2^n$ estados posibles en 
+    el registro de entrada:
+    \begin{equation}
+        |\psi_1\rangle = \frac{1}{\sqrt{2^n}} \sum_{x=0}^{2^{n}-1}|x\rangle 
+        \left[ \frac{|0\rangle - |1\rangle}{\sqrt{2}} \right]
+    \end{equation}
+    
+    \item \textbf{Consulta al Oráculo:} Aplicamos $U_f$. Al igual que en el 
+    algoritmo de Deutsch, el qubit auxiliar introduce un signo $(-1)^{f(x)}$ a 
+    cada estado base $|x\rangle$:
+    \begin{equation}
+        |\psi_2\rangle = \sum_{x=0}^{2^{n}-1} \frac{(-1)^{f(x)}|x\rangle}
+        {\sqrt{2^n}} \left[ \frac{|0\rangle - |1\rangle}{\sqrt{2}} \right]
+    \end{equation}
+    
+    \item \textbf{Interferencia Final:} Aplicamos compuertas Hadamard nuevamente 
+    a los primeros $n$ qubits. La transformación de Hadamard sobre un estado base 
+    $|x\rangle$ se define como $\sum_z (-1)^{x \cdot z} |z\rangle$, donde $x \cdot 
+    z$ es el producto punto bit a bit módulo 2. Sustituyendo esto:
+    \begin{equation}
+        |\psi_3\rangle = \sum_{z=0}^{2^{n}-1} \sum_{x=0}^{2^{n}-1} 
+        \frac{(-1)^{x \cdot z + f(x)} |z\rangle}{2^n} \otimes \left[ \frac{|0
+        \rangle - |1\rangle}{\sqrt{2}} \right]
+    \end{equation}
+    
+    \item \textbf{Medición:} Medimos los primeros $n$ qubits. Nos interesa la 
+    amplitud del estado $|0\rangle^{\otimes n}$ (donde $z=0$):
+    \begin{equation}
+        A_{z=0} = \sum_{x} \frac{(-1)^{f(x)}}{2^n}
+    \end{equation}
+    \begin{itemize}
+        \item Si $f$ es \textbf{constante}, todos los términos tienen el mismo 
+        signo ($+1$ o $-1$), sumando constructivamente a una amplitud de $\pm 1$ 
+        (probabilidad 1).
+        \item Si $f$ es \textbf{balanceada}, la mitad de los términos son $+1$ y 
+        la otra mitad $-1$, cancelándose perfectamente a 0 (probabilidad 0).
+    \end{itemize}
+\end{enumerate}
+
+Por lo tanto, si medimos el estado $|00\dots0\rangle$, la función es constante; 
+cualquier otro resultado implica que es balanceada.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{imagenes/Deutsch-Josza.png}
+    \caption{Circuito cuántico que implementa el algoritmo general de Deutsch-Jozsa. 
+    Se observa la estructura de Hadamard-Oráculo-Hadamard característica de 
+    algoritmos de interferencia. Tomado de Nielsen \& Chuang \cite{nielsen_chuang}.}
+    \label{fig:Deutsch-Josza}
+\end{figure}
+
+\noindent \textbf{Tiempo de ejecución (Runtime):} $O(1)$ cuántico vs. $O(2^n)$ 
+clásico.
+
+\subsection{Transformada Cuántica de Fourier (QFT)}
+Una de las estrategias más poderosas en matemáticas y ciencias de la computación consiste en transformar un problema difícil en otro dominio donde la solución es conocida o más sencilla de calcular. De manera análoga a la Transformada Discreta de Fourier (DFT) en el procesamiento de señales clásico, la computación cuántica utiliza la \textbf{Transformada Cuántica de Fourier (QFT)}.
+
+La QFT es una transformación lineal sobre los qubits que mapea un estado de la base computacional $|x\rangle$ a una superposición de todos los estados de la base, con fases determinadas por la siguiente expresión matemática:
+
+\begin{equation}
+    QFT |x\rangle = \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} e^{2\pi i xk/N} |k\rangle
+    \label{eq:QFT}
+\end{equation}
+
+Donde $N = 2^n$ es la dimensión del espacio de Hilbert para $n$ qubits.
+
+Aunque la QFT no suele ser el resultado final de un algoritmo, es la subrutina 
+necesaria para la \textbf{Estimación de Fase Cuántica} (Quantum Phase Estimation). 
+Esta capacidad de extraer la información de la fase global o relativa de un sistema 
+es el fundamento que impulsa algoritmos más complejos, siendo el componente clave en la 
+construcción del algoritmo de Shor \cite{nielsen_chuang}.
+
+\subsection{Algoritmo de Shor}
+Publicado en 1994, el algoritmo de Shor aborda uno de los problemas fundamentales 
+de la teoría de números: la factorización de enteros.
+
+\textbf{El Problema:} Dado un número entero compuesto $N$, el objetivo es 
+descomponerlo eficientemente en sus factores primos no triviales. La dificultad 
+de este problema para computadoras clásicas es la base de la seguridad del 
+cifrado RSA.
+
+\textbf{Procedimiento:}
+El algoritmo es híbrido, combinando pre-procesamiento clásico con una subrutina 
+cuántica de búsqueda de periodo:
+\begin{enumerate}
+    \item \textbf{Selección aleatoria:} Se elige un número entero aleatorio $a$ 
+    tal que $a < N$.
+    \item \textbf{Verificación inicial:} Se calcula el Máximo Común Divisor (MCD) 
+    usando el algoritmo de Euclides clásico. Si $\gcd(a, N) > 1$, hemos encontrado 
+    un factor por suerte y el algoritmo termina.
+    \item \textbf{Búsqueda de Periodo (Subrutina Cuántica):} Si no se encontró el 
+    factor, utilizamos la QFT para encontrar el periodo $r$ de la función modular 
+    $f(x) = a^x \pmod N$. Este es el paso que otorga la ventaja exponencial.
+    \item \textbf{Cálculo de Factores:} Una vez obtenido el periodo $r$ (y 
+    verificando que sea par), se calculan los factores mediante la fórmula clásica 
+    $\gcd(a^{r/2} \pm 1, N)$.
+\end{enumerate}
+
+
+
+\textbf{Complejidad:}
+Mientras que los mejores algoritmos clásicos operan en tiempo sub-exponencial, el 
+algoritmo de Shor tiene una complejidad de $O((\log N)^3)$. Al ser un tiempo 
+polinómico respecto al número de bits del entero ($\log N$), representa una amenaza 
+real para la criptografía actual.
+
+\subsection{Algoritmo de Grover}
+Propuesto por Lov Grover en 1996, este algoritmo ofrece una solución al problema de 
+búsqueda en bases de datos no estructuradas.
+
+\textbf{El Problema:} Dada una base de datos desordenada con $N$ elementos, 
+encontrar el índice de un elemento específico que cumple una condición dada por un 
+oráculo.
+
+\textbf{Procedimiento:}
+El algoritmo se basa en la técnica de \textit{amplificación de amplitud}:
+\begin{enumerate}
+    \item \textbf{Inicialización:} Se prepara el registro de $n$ qubits, más un 
+    auxiliar, en el estado base: $|\psi_0\rangle \rightarrow |0\rangle^{\otimes n} 
+    |0\rangle$.
+    
+    \item \textbf{Superposición:} Se aplica una compuerta Hadamard a todo el 
+    registro para crear una superposición uniforme. El último qubit se pone en 
+    el estado $|-\rangle$ (usando $H$ y $X$) para habilitar el retroceso de fase:
+    \begin{equation}
+        |\psi_1\rangle \rightarrow \frac{1}{\sqrt{2^n}} \sum_{x=0}^{2^{n}-1}
+        |x\rangle \left[ \frac{|0\rangle - |1\rangle}{\sqrt{2}} \right]
+    \end{equation}
+    
+    \item \textbf{Iteración de Grover:} Se aplica repetidamente el operador de 
+    Grover $G$. El número óptimo de repeticiones es $R \approx [\frac{\pi}{4}
+    \sqrt{2^n}]$. Matemáticamente, cada iteración consiste en aplicar el oráculo 
+    $O$ seguido del operador de difusión $(2 \|\psi \rangle \bra{\psi}-I)$:
+    \begin{equation}
+        |\psi_2 \rangle \rightarrow \left[ (2 \| \psi \rangle \bra{\psi}-I)O 
+        \right]^R 
+        \frac{1}{\sqrt{2^n}} \sum_{x=0}^{2^{n}-1}|x\rangle \left[ \frac{|0\rangle 
+        - |1\rangle}{\sqrt{2}} \right]
+    \end{equation}
+    Geométricamente, esto rota el vector de estado acercándolo al estado solución 
+    deseado.
+    
+    \item \textbf{Medición:} Se miden los primeros $n$ qubits para obtener el 
+    índice $x_0$ con alta probabilidad.
+\end{enumerate}
+
+\textbf{Complejidad:}
+El algoritmo encuentra el elemento en $O(\sqrt{N})$ pasos, proporcionando una 
+aceleración cuadrática respecto al $O(N)$ clásico.
+
+\subsection{Comparación de los algoritmos}
+A continuación, se presenta una comparativa técnica de los cuatro algoritmos 
+fundamentales discutidos, contrastando sus entradas, salidas y la complejidad 
+computacional asintótica.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Algoritmo} & \textbf{Entrada} & \textbf{Salida} & 
+        \textbf{Tiempo de Ejecución} \\ \hline
+        Deutsch & Función $f(x)$ & Constante/Balanceada & $O(1)$ \\ \hline
+        Deutsch-Jozsa & Función $f(x)$ ($n$ bits) & Constante/Balanceada & $O(1)$ \\ \hline
+        Shor & Entero $N$ & Factor de $N$ & $O((\log N)^3)$ \\ \hline
+        Grover & Base de datos tamaño $N$ & Índice objetivo & $O(\sqrt{N})$ \\ \hline
+    \end{tabular}
+    \caption{Comparación entre los 4 algoritmos principales. Nótese la 
+    diferencia entre ventajas constantes, polinómicas y cuadráticas.}
+    \label{tab:comp_algorithm}
+\end{table}
+
+\subsection{Perspectivas futuras y aplicaciones}
+
+El desarrollo de la computación cuántica abre un abanico de aplicaciones que 
+prometen transformar industrias enteras, aunque su implementación conlleva 
+desafíos significativos.
+
+\textbf{Áreas de impacto principal:}
+\begin{itemize}
+    \item \textbf{Criptografía:} La capacidad del algoritmo de Shor para romper 
+    el cifrado RSA está impulsando la transición hacia la \textit{Criptografía 
+    Post-Cuántica} (PQC), buscando protocolos resistentes a ataques cuánticos.
+    \item \textbf{Optimización:} El algoritmo de Grover y sus variantes ofrecen 
+    mejoras cuadráticas para problemas combinatorios complejos, útiles en logística 
+    y finanzas.
+    \item \textbf{Simulación Cuántica:} Como predijo Feynman, la aplicación más 
+    natural es la simulación de sistemas químicos y moleculares para el 
+    descubrimiento de nuevos materiales y fármacos.
+\end{itemize}
+
+\subsection{Conclusiones}
+La computación cuántica ha transitado de ser una curiosidad teórica a una 
+tecnología emergente con aplicaciones definidas en criptografía, optimización e 
+inteligencia artificial. La demostración de la \textit{Supremacía Cuántica} por 
+parte de procesadores como Sycamore de Google marca el inicio de una era donde 
+estas máquinas pueden resolver tareas intratables clásicamente.
+
+Sin embargo, persisten grandes desafíos de ingeniería, principalmente la 
+escalabilidad del hardware (aumentar el número de qubits) y la corrección de 
+errores cuánticos para mitigar la decoherencia. A pesar de estos obstáculos, los 
+avances continuos en hardware y la adopción comercial sugieren que la computación 
+cuántica se consolidará como una tecnología clave para la resolución de problemas 
+complejos y las comunicaciones seguras en las próximas décadas.

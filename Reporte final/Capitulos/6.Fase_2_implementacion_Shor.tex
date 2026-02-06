@@ -1,0 +1,1132 @@
+\chapter{Proyecto en computación cuántica}
+\label{cap:shor}
+
+El objetivo central de este capítulo es la aplicación práctica de los 
+conceptos de computación cuántica en el campo de la criptografía, 
+específicamente en el análisis de vulnerabilidades del sistema RSA mediante 
+el algoritmo de Shor. Para comprender la magnitud de este desafío y la 
+estructura de la solución cuántica, es imperativo desglosar el problema 
+en dos pilares fundamentales: 1) la estructura matemática del sistema 
+RSA y 2) la Transformada Cuántica de Fourier como herramienta de estimación 
+de fase.
+
+La motivación primordial del algoritmo de Shor reside en su capacidad 
+para comprometer la seguridad del cifrado RSA. Dado que RSA no es 
+simplemente una secuencia de pasos algorítmicos, sino un sistema 
+fundamentado en la teoría de números, esta sección comienza estableciendo 
+las bases teóricas de la criptografía y la aritmética modular. Solo a 
+través de la comprensión profunda de estos principios es posible 
+identificar qué es exactamente lo que el algoritmo de Shor busca resolver.
+
+La conexión entre el mundo clásico y el cuántico se establece mediante 
+la reducción del problema de factorización a un problema de búsqueda de 
+periodo. Para resolver esto, se introduce la Transformada Cuántica de 
+Fourier (QFT) no como un fin en sí mismo, sino como el motor necesario 
+para la \textit{Estimación de Fase Cuántica} (QPE). Es esta estimación 
+la que permite explotar las propiedades de superposición e interferencia 
+para resolver ecuaciones modulares con una mejora exponencial en el tiempo 
+de ejecución respecto a los métodos clásicos.
+
+Finalmente, el capítulo culmina con la integración de estos componentes 
+en el algoritmo de Shor. Se complementa el análisis teórico con 
+implementaciones prácticas en Python, replicando tanto el sistema de 
+cifrado RSA como la subrutina cuántica de búsqueda de periodos. Estas 
+simulaciones permiten visualizar el crecimiento de los recursos 
+computacionales requeridos y evidencian la ventaja cuántica al optimizar 
+la resolución del problema de factorización.
+
+\section{Criptografía}
+
+La criptografía, etimológicamente proveniente del griego \textit{kryptós} 
+(oculto) y \textit{graphein} (escribir), se definía clásicamente como el 
+arte de escribir o resolver códigos. Sin embargo, esta definición ha 
+evolucionado drásticamente en la era de la información.
+
+Según Katz y Lindell \cite{katz2020introduction}, la criptografía moderna 
+ya no se limita al secreto, sino que constituye el estudio científico de 
+técnicas matemáticas para asegurar la información digital, los sistemas y 
+las computaciones distribuidas frente a adversarios maliciosos. Ya no es 
+un arte subjetivo, sino una ciencia rigurosa basada en pruebas de seguridad 
+y complejidad computacional.
+
+\subsection{Contexto histórico}
+La historia de la criptografía es una «carrera armamentista» constante 
+entre los codificadores (criptógrafos) y los rompedores de códigos 
+(criptoanalistas).
+
+Uno de los primeros ejemplos documentados es el \textbf{Cifrado César}, 
+utilizado por Julio César para proteger comunicaciones militares. Este 
+método es un cifrado de sustitución simple donde cada letra se desplaza 
+un número fijo de posiciones en el alfabeto. Aunque efectivo en su época 
+debido al analfabetismo generalizado, hoy es trivial de romper.
+
+Un punto de inflexión crucial ocurrió en el siglo XVI con la ejecución de 
+María Estuardo, Reina de Escocia. Como narra Singh \cite{singh1999code}, 
+María utilizaba un cifrado de sustitución para comunicarse con sus 
+conspiradores desde la prisión, creyendo que sus mensajes eran seguros. 
+Sin embargo, Sir Francis Walsingham, el jefe de espías de la reina Isabel I, 
+empleó el \textbf{análisis de frecuencia} para descifrar los mensajes. 
+Este método estadístico se basa en que, en cualquier idioma, ciertas letras 
+aparecen con mayor frecuencia que otras (por ejemplo, la 'e' en inglés o 
+la 'a' y 'e' en español). El descifrado de estos mensajes no solo reveló 
+la conspiración de Babington, sino que condujo directamente a la ejecución 
+de María, demostrando que la seguridad por oscuridad no es suficiente.
+
+A lo largo del siglo XX, con la mecanización (máquina Enigma) y la 
+digitalización, la criptografía transitó de la lingüística a las 
+matemáticas, culminando en los algoritmos modernos que no dependen del 
+secreto del método, sino de la complejidad computacional de las claves.
+
+\subsection{Metas básicas de la criptografía}
+Cualquier sistema criptográfico robusto busca satisfacer, total o 
+parcialmente, los siguientes objetivos de seguridad de la información 
+\cite{stinson2005cryptography}:
+
+\begin{itemize}
+    \item \textbf{Confidencialidad:} Garantizar que la información sea 
+    accesible únicamente por las partes autorizadas. Es el concepto  
+    de «secreto».
+    \item \textbf{Integridad:} Asegurar que los datos no han sido alterados, 
+    manipulados o corrompidos durante su transmisión o almacenamiento por 
+    una entidad no autorizada.
+    \item \textbf{Autenticación:} Proveer mecanismos para verificar la 
+    identidad de las partes involucradas en la comunicación (confirmar que 
+    «Alice» es realmente quien dice ser).
+    \item \textbf{No repudio:} Evitar que una entidad niegue la autoría de 
+    un mensaje o acción que realizó previamente. Esto es fundamental en 
+    contextos legales y financieros.
+\end{itemize}
+
+\subsection{Escenario básico}
+Para formalizar el estudio de los criptosistemas, se utiliza un modelo 
+estándar de comunicación. Supongamos dos partes, tradicionalmente llamadas 
+\textbf{Alice} y \textbf{Bob}, que desean comunicarse a través de un canal 
+inseguro donde un adversario, \textbf{Eve} (de \textit{eavesdropper}), 
+puede interceptar los mensajes.
+
+Un esquema de cifrado se define como una tupla de algoritmos 
+probabilísticos $(\mathcal{G}, \mathcal{E}, \mathcal{D})$ sobre un espacio 
+de mensajes $\mathcal{M}$, un espacio de claves $\mathcal{K}$ y un espacio 
+de textos cifrados $\mathcal{C}$:
+
+\begin{enumerate}
+    \item Alice posee un \textit{mensaje} o \textit{texto plano} $M 
+    \in \mathcal{M}$.
+    \item Utiliza una función de encriptación $e$ y una clave $k$ para 
+    generar el \textit{texto cifrado}:
+    \begin{equation}
+        C = e_k(M)
+    \end{equation}
+    \item Alice envía $C$ a través del canal inseguro.
+    \item Bob recibe $C$ y utiliza una función de desencriptación $d$ 
+    con la clave correspondiente para recuperar el mensaje original:
+    \begin{equation}
+        M = d_k(C) = d_k(e_k(M))
+    \end{equation}
+\end{enumerate}
+
+La condición fundamental es que la recuperación de $M$ debe ser 
+computacionalmente inviable para Eve sin el conocimiento de la clave $k$.
+
+
+
+\subsection{Criptografía simétrica y asimétrica}
+Dependiendo de la naturaleza de las claves utilizadas, los criptosistemas 
+se dividen en dos grandes familias:
+
+\begin{itemize}
+    \item \textbf{Criptografía simétrica (Clave Privada):} Alice y Bob 
+    comparten una única clave secreta $k$ previamente acordada. Esta misma 
+    clave se usa tanto para encriptar como para desencriptar 
+    ($k_{enc} = k_{dec}$).
+    \begin{itemize}
+        \item \textit{Ventaja:} Es computacionalmente muy eficiente y rápida 
+        (ej. AES).
+        \item \textit{Desventaja:} Sufre del problema de distribución de 
+        claves. ¿Cómo comparten Alice y Bob la clave secreta inicialmente 
+        sin que Eve la intercepte?
+    \end{itemize}
+    
+    \item \textbf{Criptografía Asimétrica (Clave Pública):} Cada usuario 
+    genera un par de claves: una \textbf{clave pública} ($pk$) que puede 
+    ser distribuida abiertamente, y una \textbf{clave privada} ($sk$) que 
+    debe mantenerse en secreto.
+    \begin{itemize}
+        \item Si Alice quiere enviar un mensaje a Bob, usa la clave pública 
+        de Bob ($pk_{Bob}$) para encriptar.
+        \item Solo Bob puede desencriptar el mensaje usando su clave privada 
+        ($sk_{Bob}$).
+        \item \textit{Ventaja:} Resuelve el problema de distribución de claves 
+        y permite firmas digitales.
+        \item \textit{Desventaja:} Es órdenes de magnitud más lenta que la 
+        simétrica y requiere claves más largas.
+    \end{itemize}
+\end{itemize}
+
+El sistema RSA, que se abordará más adelante, es el exponente más famoso de 
+la criptografía asimétrica.
+
+\section{Fundamentos matemáticos}
+
+La seguridad de los algoritmos de clave pública como RSA no se basa en la 
+complejidad estructural del algoritmo, sino en la dificultad de resolver 
+ciertos problemas matemáticos en teoría de números, específicamente aquellos 
+relacionados con la factorización de enteros grandes. Para ello, es 
+necesario establecer las bases de la aritmética modular.
+
+\subsection{Aritmética modular}
+Formalmente, la aritmética modular se fundamenta en las propiedades de 
+divisibilidad de los números enteros. Su base rigurosa reside en el 
+\textbf{Algoritmo de la División}, el cual establece que dados dos enteros 
+$a$ y $N$ (con $N > 0$), existen dos enteros únicos $q$ (cociente) y 
+$r$ (residuo) tales que:
+
+\begin{equation}
+    a = qN + r, \quad \text{donde } 0 \le r < N
+\end{equation}
+
+En este contexto, definimos el operador módulo, denotado como $a \bmod N$, 
+como el único entero $r$ que satisface la ecuación anterior.
+
+Más allá del operador, en criptografía es crucial la relación de 
+\textbf{congruencia}. Decimos que dos enteros $a$ y $b$ son congruentes 
+módulo $N$, denotado como:
+
+\begin{equation}
+    a \equiv b \pmod N
+\end{equation}
+
+si y solo si la diferencia $(a - b)$ es un múltiplo entero de $N$. Es 
+decir, $N \mid (a-b)$.
+
+Esta relación de congruencia es una \textit{relación de equivalencia}, 
+lo que permite particionar el conjunto de los números enteros $\mathbb{Z}$ 
+en $N$ clases de equivalencia disjuntas. El conjunto de estas clases forma 
+el anillo de enteros módulo $N$, denotado como $\mathbb{Z}_N$.
+
+\subsection{El grupo multiplicativo $\mathbb{Z}_N^*$}
+ 
+Necesitamos un subconjunto de números que tengan propiedades especiales 
+respecto a la multiplicación, específicamente, que posean un 
+\textit{inverso multiplicativo}.
+
+Definimos el grupo multiplicativo $\mathbb{Z}_N^*$ como el conjunto de 
+enteros positivos menores que $N$ que son coprimos (relativamente primos) 
+con $N$:
+
+\begin{equation}
+    \mathbb{Z}_N^* = \{ b \in \{1, \dots, N-1\} \mid \gcd(b, N) = 1 \}
+\end{equation}
+
+Este conjunto forma un \textbf{grupo abeliano} bajo la operación de 
+multiplicación módulo $N$. Las propiedades que lo hacen vital para RSA son:
+
+\begin{enumerate}
+    \item \textbf{Cerradura:} Si $a, b \in \mathbb{Z}_N^*$, entonces 
+    $(a \cdot b) \bmod N \in \mathbb{Z}_N^*$.
+    \item \textbf{Existencia de Inverso:} Para todo $a \in \mathbb{Z}_N^*$, 
+    existe un único elemento $a^{-1} \in \mathbb{Z}_N^*$ tal que:
+    \begin{equation}
+        a \cdot a^{-1} \equiv 1 \pmod N
+    \end{equation}
+\end{enumerate}
+
+La existencia de este inverso $a^{-1}$ es lo que permite el proceso de 
+desencriptación. Si $N$ es un número primo $p$, entonces todos los 
+números desde $1$ hasta $p-1$ son coprimos con $p$, por lo tanto 
+$|\mathbb{Z}_p^*| = p-1$. Sin embargo, si $N$ es compuesto (como en RSA), 
+el tamaño del grupo está dado por la función $\phi(N)$ de Euler, concepto 
+que será central para la generación de llaves.
+
+\subsection{Algoritmo de Euclides}
+El Algoritmo de Euclides es un método eficiente y antiguo para calcular el 
+Máximo Común Divisor (MCD) de dos números enteros, denotado como $\gcd(a, b)$. 
+Su importancia en criptografía es doble: permite verificar si dos números son 
+coprimos (requisito para generar claves RSA) y es el paso final para extraer los 
+factores en el algoritmo de Shor.
+
+El algoritmo se basa en el principio de que el MCD de dos números no cambia si al 
+mayor se le resta el menor. De manera recursiva:
+\begin{equation}
+    \gcd(a, b) = \gcd(b, a \bmod b)
+\end{equation}
+El proceso se repite hasta que el residuo es 0. El último residuo no nulo es el MCD.
+
+\textbf{Ejemplo:} Calcular $\gcd(48, 18)$.
+\begin{align*}
+    48 &= 2 \times 18 + 12 & (\gcd(48, 18) \to \gcd(18, 12)) \\
+    18 &= 1 \times 12 + 6  & (\gcd(18, 12) \to \gcd(12, 6)) \\
+    12 &= 2 \times 6 + 0   & (\text{Residuo 0, fin.})
+\end{align*}
+Por lo tanto, $\gcd(48, 18) = 6$.
+
+\section{Sistema RSA}
+
+El sistema criptográfico RSA, introducido en 1977 por Ron Rivest, Adi 
+Shamir y Leonard Adleman \cite{rivest1978method}, marcó un antes y un 
+después en la historia de la seguridad informática al ser la primera 
+implementación práctica de un sistema de \textbf{criptografía asimétrica}.
+
+Su importancia radica en que permite la comunicación segura a través de 
+canales inseguros sin necesidad de que las partes hayan intercambiado 
+previamente una clave secreta. La seguridad del protocolo no se basa en 
+la oscuridad del algoritmo, sino en una \textbf{función trampa de un solo 
+sentido} (\textit{one-way trapdoor function}): una operación matemática 
+que es computacionalmente fácil de realizar en una dirección 
+(multiplicación modular), pero extremadamente difícil de revertir 
+(factorización de enteros grandes) sin una información especial llamada 
+«trampa», es decir la clave privada.
+
+\subsection{Idea general del sistema RSA}
+El funcionamiento de RSA se puede describir mediante un protocolo de tres 
+etapas: generación de llaves, encriptación y desencriptación. Supongamos 
+un escenario donde Bob desea enviar un mensaje confidencial a Alice.
+
+\subsubsection{Generación de la llave}
+Para poder recibir mensajes, Alice debe construir su «candado» y su «llave» 
+como represnetación se usan números. El procedimiento formal es el siguiente:
+
+\begin{enumerate}
+    \item \textbf{Selección de primos:} Se eligen dos números primos grandes 
+    y distintos, $p$ y $q$. La seguridad del sistema depende críticamente 
+    del tamaño de estos números (actualmente se recomiendan primos de 1024 
+    bits o más).
+    
+    \item \textbf{Cálculo del módulo:} Se calcula el módulo público $N$:
+    \begin{equation}
+        N = p \times q
+    \end{equation}
+    Este valor $N$ define el tamaño del conjunto $\mathbb{Z}_N$ donde 
+    ocurrirán las operaciones.
+    
+    \item \textbf{Cálculo del totiente:} Se calcula la función $\phi(N)$ de 
+    Euler. Dado que $p$ y $q$ son primos, el número de coprimos menores que 
+    $N$ es simplemente:
+    \begin{equation}
+        \phi(N) = (p-1)(q-1)
+    \end{equation}
+    
+    \item \textbf{Exponente público ($e$):} Se elige un entero $e$ tal 
+    que $1 < e < \phi(N)$ y que sea coprimo con $\phi(N)$, es decir:
+    \begin{equation}
+        \gcd(e, \phi(N)) = 1
+    \end{equation}
+    Habitualmente se elige $e=65537$ por eficiencia en la encriptación.
+    
+    \item \textbf{Exponente privado ($d$):} Se calcula el inverso 
+    multiplicativo modular de $e$ módulo $\phi(N)$. Esto equivale a 
+    resolver la congruencia lineal:
+    \begin{equation}
+        d \cdot e \equiv 1 \pmod{\phi(N)}
+    \end{equation}
+    Este valor $d$ se obtiene eficientemente utilizando el 
+    \textit{Algoritmo de Euclides Extendido}.
+\end{enumerate}
+
+\subsubsection{Llave pública y privada}
+El resultado del proceso anterior son dos pares de números:
+\begin{itemize}
+    \item \textbf{Llave Pública ($pk$):} El par $(N, e)$. Esta llave se 
+    distribuye abiertamente y permite a cualquiera encriptar mensajes 
+    dirigidos a Alice.
+    \item \textbf{Llave Privada ($sk$):} El par $(N, d)$. Esta información 
+    debe permanecer estrictamente secreta y permite a Alice desencriptar 
+    los mensajes.
+\end{itemize}
+
+Es fundamental notar que los primos originales $p$ y $q$, así como el 
+valor $\phi(N)$, deben ser destruidos o almacenados con la misma seguridad 
+que $d$, ya que su conocimiento permitiría reconstruir la clave privada 
+trivialmente.
+
+\subsubsection{Encriptación}
+Para enviar un mensaje a Alice, Bob primero debe convertir su mensaje de 
+texto plano en una representación numérica $M$, tal que $0 \le M < N$. 
+Utilizando la llave pública de Alice $(N, e)$, Bob calcula el texto 
+cifrado $C$ mediante la operación de exponenciación modular:
+
+\begin{equation}
+    C \equiv M^e \pmod N
+\end{equation}
+
+Donde:
+\begin{itemize}
+    \item $M$: Mensaje original (texto plano).
+    \item $e$: Exponente público.
+    \item $N$: Módulo público.
+    \item $C$: Mensaje encriptado (texto cifrado).
+\end{itemize}
+
+\subsubsection{Desencriptación}
+Al recibir el texto cifrado $C$, Alice utiliza su exponente privado 
+$d$ para recuperar el mensaje original $M$:
+
+\begin{equation}
+    M \equiv C^d \pmod N
+\end{equation}
+
+Esta operación es factible solo para quien conozca $d$. Un atacante que 
+intercepta $C$ y conoce $(N, e)$ se enfrenta al problema del logaritmo 
+discreto o a la factorización de $N$ para encontrar $d$.
+
+\subsubsection{Prueba de corrección}
+Para confiar en este sistema, debemos demostrar matemáticamente que la 
+operación de desencriptación efectivamente recupera el mensaje original, 
+es decir, que $(M^e)^d \equiv M \pmod N$.
+
+Partimos de la ecuación de desencriptación:
+\begin{equation}
+    C^d \equiv (M^e)^d \equiv M^{ed} \pmod N
+\end{equation}
+
+Recordemos que $d$ fue elegido tal que $e \cdot d \equiv 1 \pmod{\phi(N)}$. 
+Por definición de congruencia, esto implica que existe un entero $k$ tal 
+que:
+\begin{equation}
+    ed = 1 + k\phi(N)
+\end{equation}
+
+Sustituyendo esto en la expresión del mensaje:
+\begin{equation}
+    M^{ed} = M^{1 + k\phi(N)} = M^1 \cdot (M^{\phi(N)})^k
+\end{equation}
+
+Aquí usamos el \textbf{Teorema de Euler}, que establece que para todo 
+entero $a$ coprimo con $n$, se cumple que $a^{\phi(n)} \equiv 1 \pmod n$. 
+Asumiendo $\gcd(M, N) = 1$ (lo cual es extremadamente probable para $N$ 
+grandes):
+\begin{equation}
+    M \cdot (M^{\phi(N)})^k \equiv M \cdot (1)^k \equiv M \pmod N
+\end{equation}
+
+Esto demuestra que el proceso es reversible únicamente si se posee la 
+inversa modular correcta.
+
+\subsection{RSA y el problema de factorización}
+La seguridad del algoritmo RSA no es absoluta, sino computacional. Se basa 
+en la hipótesis de que existe una asimetría fundamental en la complejidad 
+de ciertas operaciones aritméticas.
+
+\subsubsection{¿Por qué es RSA seguro?}
+La seguridad radica en la relación entre la clave pública y la privada. 
+Para obtener la clave privada $d$ a partir de la pública $(N, e)$, un 
+atacante necesita resolver:
+\begin{equation}
+    d \equiv e^{-1} \pmod{\phi(N)}
+\end{equation}
+Para realizar este cálculo, es indispensable conocer el valor de 
+$\phi(N) = (p-1)(q-1)$. Dado que $N$ es público, obtener $\phi(N)$ es 
+equivalente a encontrar los factores primos $p$ y $q$ de $N$.
+
+Por lo tanto, romper RSA es equivalente a resolver el problema de la 
+factorización de enteros: dado un número compuesto $N$, encontrar sus 
+factores primos. Si $N$ es lo suficientemente grande, este problema se 
+considera intratable para computadoras clásicas.
+
+\subsubsection{Ejemplo con pequeños números}
+Para ilustrar el funcionamiento aritmético, consideremos un ejemplo con 
+números manejables manualmente, siguiendo los pasos del algoritmo:
+
+\begin{enumerate}
+    \item \textbf{Generación:}
+    \begin{itemize}
+        \item Elegimos $p = 61$ y $q = 53$.
+        \item Calculamos el módulo $N = 61 \times 53 = 3233$.
+        \item Calculamos el totiente $\phi(N) = (61-1)(53-1) = 3120$.
+        \item Elegimos un exponente público $e = 17$ (verificamos que 
+        $\gcd(17, 3120)=1$).
+        \item Calculamos el exponente privado $d$ tal que $17d \equiv 1 
+        \pmod{3120}$. Usando el algoritmo de Euclides, obtenemos $d = 2753$.
+    \end{itemize}
+    \item \textbf{Operación:}
+    \begin{itemize}
+        \item Supongamos un mensaje $M = 65$.
+        \item \textbf{Encriptación:} $C = 65^{17} \bmod 3233 = 2790$.
+        \item \textbf{Desencriptación:} $M' = 2790^{2753} \bmod 3233 = 65$.
+    \end{itemize}
+\end{enumerate}
+El mensaje recuperado coincide con el original, validando el proceso.
+
+\subsection{Complejidad clásica}
+La confianza en RSA se basa en que no existe ningún algoritmo clásico 
+eficiente que pueda factorizar $N$ en tiempo polinómico. El mejor algoritmo 
+clásico conocido hasta la fecha es la \textbf{Criba General del Cuerpo de 
+Números} (General Number Field Sieve, GNFS).
+
+La complejidad temporal de este algoritmo para factorizar un entero $N$ 
+es sub-exponencial:
+\begin{equation}
+    O\left(\exp\left(\left(\frac{64}{9}\right)^{1/3} (\ln N)^{1/3} (\ln 
+    \ln N)^{2/3}\right)\right)
+\end{equation}
+
+Esta complejidad implica que el tiempo requerido crece drásticamente con 
+el tamaño de la clave. Se estima que factorizar una clave RSA de 2048 bits 
+con la tecnología clásica actual tomaría miles de millones de años, 
+haciendo que el sistema sea seguro en la práctica, previo a la existencia 
+de las computadoras cuánticas.
+
+\subsection{Conceptos críticos de seguridad: Hash y Entropía}
+
+Para que la implementación de RSA sea segura y eficiente en el mundo real, 
+no basta con la aritmética modular. Se requiere garantizar la integridad de 
+los mensajes y la imprevisibilidad de las claves. Para ello, se aplican 
+dos conceptos fundamentales: las funciones de resumen (Hash) y la entropía 
+de la información.
+
+\subsubsection{Funciones Hash criptográficas}
+Una función hash $H(\cdot)$ es un algoritmo matemático que transforma una 
+entrada de datos de tamaño arbitrario (como un archivo, un correo 
+electrónico o una imagen) en una cadena de bits de tamaño fijo, conocida 
+como \textit{digest} o «huella digital».
+
+Formalmente, $H: \{0,1\}^* \to \{0,1\}^n$. Para ser útil en criptografía, 
+una función hash debe satisfacer propiedades estrictas \cite{katz2020introduction}:
+
+\begin{enumerate}
+    \item \textbf{Determinismo:} Para una misma entrada $x$, siempre debe 
+    producirse la misma salida $H(x)$.
+    \item \textbf{Resistencia a la preimagen (Unidireccionalidad):} Dado un 
+    hash $y$, debe ser computacionalmente inviable encontrar un mensaje $x$ 
+    tal que $H(x) = y$.
+    \item \textbf{Efecto avalancha:} Un cambio minúsculo en la entrada 
+    (por ejemplo, cambiar un solo bit) debe producir un cambio drástico e 
+    impredecible en la salida.
+    \item \textbf{Resistencia a colisiones:} Debe ser computacionalmente 
+    inviable encontrar dos entradas diferentes $x_1 \neq x_2$ tales que 
+    $H(x_1) = H(x_2)$.
+\end{enumerate}
+
+
+
+\textbf{Relación con RSA:}
+El algoritmo RSA es computacionalmente costoso, especialmente para mensajes 
+largos. En la práctica, para realizar una \textbf{Firma Digital}, Alice no 
+encripta todo el documento con su clave privada. En su lugar:
+\begin{enumerate}
+    \item Alice calcula el hash del documento: $h = H(M)$.
+    \item Alice encripta solo el hash (que es pequeño y fijo, ej. 256 bits) 
+    con su clave privada: $\text{Firma} = h^d \bmod N$.
+    \item Esto garantiza eficiencia y que el documento no ha sido alterado 
+    (integridad), ya que si alguien modifica $M$, el hash cambiará y la 
+    firma no coincidirá.
+\end{enumerate}
+
+\subsubsection{Entropía e Incertidumbre}
+La seguridad de RSA depende de que $p$ y $q$ sean secretos. Si un atacante 
+puede predecir o adivinar los números primos que elegimos, el sistema 
+colapsa. Aquí entra el concepto de \textbf{Entropía}.
+
+Definida por Claude Shannon en 1948 \cite{shannon1948}, la entropía es una 
+medida de la incertidumbre asociada a una variable aleatoria. 
+Matemáticamente, la entropía $H(X)$ de una variable discreta $X$ con 
+posibles resultados $x_1, \dots, x_n$ y probabilidades $P(x_i)$ es:
+
+\begin{equation}
+    H(X) = - \sum_{i} P(x_i) \log_2 P(x_i)
+\end{equation}
+
+En el contexto de la generación de claves:
+\begin{itemize}
+    \item \textbf{Baja Entropía:} Si utilizamos un generador de números 
+    pseudoaleatorios malo (por ejemplo, basado en la hora del reloj del 
+    sistema), el espacio de búsqueda se reduce drásticamente. Un atacante 
+    no necesita factorizar $N$; solo necesita probar las semillas probables 
+    del generador.
+    \item \textbf{Alta Entropía:} Para generar claves RSA seguras, se 
+    requiere una fuente de \textbf{aleatoriedad criptográficamente segura}, 
+    que maximice la entropía. Esto asegura que la probabilidad 
+    de elegir cualquier par específico de primos sea uniformemente baja, 
+    haciendo inviable la adivinanza.
+\end{itemize}
+
+
+
+Sin una fuente de alta entropía, las matemáticas de RSA son sólidas, pero 
+la implementación es vulnerable.
+
+\subsection{Aplicaciones}
+Debido a sus propiedades de seguridad y autenticación, RSA se ha convertido 
+en el estándar para la seguridad digital:
+
+\begin{itemize}
+    \item \textbf{Navegación Web Segura (HTTPS):} RSA se utiliza en el 
+    protocolo TLS/SSL para intercambiar de forma segura las claves 
+    simétricas que cifrarán la sesión de navegación.
+    \item \textbf{Firmas Digitales:} RSA permite la autenticación y el no 
+    repudio. Alice puede firmar un documento encriptando un hash del 
+    mismo con su clave \textbf{privada}. Cualquier persona puede verificar 
+    la firma desencriptando con la clave \textbf{pública} de Alice. Si el 
+    hash coincide, se garantiza matemáticamente que solo Alice pudo haberlo 
+    firmado y que el documento no fue alterado.
+    \item \textbf{Acceso Remoto (SSH):} Utilizado para autenticar servidores 
+    y usuarios en administración de sistemas.
+\end{itemize}
+
+\section{Implementación práctica del protocolo RSA}
+
+Con el objetivo de validar los conceptos teóricos del sistema RSA y comprender qué 
+es exactamente lo que el algoritmo de Shor debe «romper», se desarrolló un script 
+en Python que simula todo el ciclo de vida del criptosistema: desde la generación 
+de llaves hasta la transmisión de mensajes cifrados.
+
+El código completo y la documentación técnica se encuentran disponibles en el 
+repositorio del proyecto: \url{https://github.com/Jorge-1501/Practicas}.
+
+\subsection{Metodología de la implementación}
+
+A diferencia de las implementaciones industriales que operan sobre enormes bloques 
+de bits, este simulador pedagógico opera bajo un esquema cifrado carácter 
+a carácter utilizando la codificación UTF-8. Esto permite visualizar cómo las 
+propiedades aritméticas actúan sobre cada unidad de información individualmente.
+
+La arquitectura del script se divide en tres módulos funcionales:
+
+\begin{enumerate}
+    \item \textbf{Tratamiento de datos:} Conversión de cadenas de texto a listas de 
+    enteros y viceversa.
+    \item \textbf{Núcleo matemático:} Funciones para pruebas de primalidad, 
+    cálculo del totiente, inverso modular y generación de llaves $(e, d)$.
+    \item \textbf{Interfaz de cifrado:} El bucle principal que ejecuta las 
+    transformaciones $C = M^e \pmod N$ y $M = C^d \pmod N$.
+\end{enumerate}
+
+\subsection{Conversión y Espacio de Mensajes}
+El primer desafío es transformar el lenguaje natural. 
+Utilizando la codificación estándar UTF-8, cada carácter se convierte en un entero,
+o una secuencia de enteros.
+
+\begin{lstlisting}[language=Python, caption=Conversión de texto a valores numéricos]
+def string_to_numbers(text):
+    """Convierte una cadena en una lista de valores enteros UTF-8."""
+    return list(text.encode("utf-8"))
+
+def numbers_to_string(numbers):
+    """Reconstruye la cadena original desde la lista de enteros."""
+    return bytes(numbers).decode("utf-8")
+\end{lstlisting}
+
+Esta función es importante porque define nuestro \textbf{espacio de mensaje} $M$. 
+En codificación ASCII/UTF-8 estándar, los caracteres imprimibles comunes tienen 
+valores entre 32 y 126 (por ejemplo, 'A' = 65, 'a' = 97). Esto impone una 
+restricción física sobre el tamaño mínimo de nuestro módulo $N$, como se discutirá 
+en las limitaciones.
+
+\subsection{Generación de llaves y Cifrado}
+El núcleo del algoritmo implementa la selección aleatoria de exponentes. Para 
+garantizar la seguridad del sistema, se busca un exponente público $e$ que sea 
+coprimo con $\phi(N)$ y un exponente privado $d$ que sea su inverso modular.
+
+La implementación de las funciones de encriptación y desencriptación utiliza la 
+función nativa \texttt{pow(base, exp, mod)} de Python, la cual implementa la 
+\textit{exponenciación modular rápida}, esencial para manejar la complejidad 
+computacional.
+
+\begin{lstlisting}[language=Python, caption=Funciones de cifrado y descifrado]
+def encrypt(text, e, N):
+    """Aplica la transformación C = M^e mod N a cada carácter."""
+    ascii_values = string_to_numbers(text)
+    encrypted_values = [pow(char, e, N) for char in ascii_values]
+    return encrypted_values
+
+def decrypt(encrypted_values, d, N):
+    """Recupera el mensaje aplicando M = C^d mod N."""
+    decrypted_values = [pow(char, d, N) for char in encrypted_values]
+    return numbers_to_string(decrypted_values)
+\end{lstlisting}
+
+\subsection{Resultados y Análisis de Limitaciones}
+Durante las pruebas experimentales del script, se observó un comportamiento crítico 
+relacionado con la magnitud de los números primos seleccionados.
+
+El sistema funciona correctamente para pares de primos como $p=13, q=17$, donde 
+$N=221$, o superiores. Sin embargo, para primos pequeños, menores a 11, 
+el proceso de desencriptación falla, recuperando caracteres erróneos o lanzando 
+errores de decodificación.
+
+\subsubsection{La restricción del tamaño del módulo ($M < N$)}
+Este error no es un fallo del código, sino consecuencia de una propiedad de la 
+aritmética modular. Para que la información se conserve intacta en el anillo 
+$\mathbb{Z}_N$, el valor numérico del mensaje $M$ debe ser estrictamente menor 
+que el módulo $N$.
+
+\begin{equation}
+    M < N
+\end{equation}
+
+Si tenemos un mensaje $M$ (por ejemplo, la letra 'z' con valor ASCII 122) y 
+elegimos primos pequeños como $p=5$ y $q=11$, nuestro módulo es $N=55$. Al 
+intentar encriptar:
+\begin{equation}
+    C \equiv 122^e \pmod{55}
+\end{equation}
+La operación módulo reduce el valor 122 a un número menor que 55 
+\textit{antes} de que siquiera empiece la encriptación real 
+(pérdida de información por desbordamiento del módulo). Matemáticamente, 
+$122 \equiv 12 \pmod{55}$. Al desencriptar, recuperaremos 12, no 122.
+
+Por lo tanto, para cifrar texto ASCII estándar, valores hasta 127, el producto de 
+los primos debe cumplir $N > 127$.
+\begin{itemize}
+    \item Con $p=5, q=11 \rightarrow N=55$ (Falla con letras).
+    \item Con $p=11, q=13 \rightarrow N=143$ (Funciona para ASCII estándar).
+    \item Con $p=13, q=17 \rightarrow N=221$ (Funciona para ASCII extendido).
+\end{itemize}
+
+Esta validación experimental confirma que la seguridad y funcionalidad de RSA 
+dependen intrínsecamente de la magnitud de los números primos utilizados, 
+justificando la necesidad de primos bastante grandes (1024+ bits) en aplicaciones 
+reales, no solo por seguridad ante la factorización, sino para poder encapsular 
+mensajes significativos.
+
+
+\section{Herramientas algorítmicas cuánticas}
+
+Para comprender la mecánica interna del algoritmo de Shor, es necesario dominar dos 
+subrutinas fundamentales que explotan el paralelismo cuántico: la Transformada 
+Cuántica de Fourier y la Estimación de Fase.
+
+\subsection{Transformada Cuántica de Fourier (QFT)}
+La QFT es el análogo cuántico de la Transformada Discreta de Fourier (DFT) clásica. 
+Mientras que la DFT procesa un vector de amplitudes complejas, la QFT opera 
+directamente sobre el vector de estado cuántico, realizando un cambio de base que 
+revela la estructura periódica oculta en los datos.
+
+\subsubsection{Definición Matemática}
+Consideremos un estado cuántico en un espacio de Hilbert de dimensión $N = 2^n$. La 
+QFT se define como un operador unitario que transforma un estado de la base 
+computacional $|j\rangle$ en una superposición uniforme de todos los estados de la 
+base, modulados por fases complejas \cite{nielsen_chuang}:
+
+\begin{equation}
+    \text{QFT} : |j\rangle \mapsto \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} 
+    e^{2\pi i\, \frac{jk}{N}} |k\rangle
+    \label{eq:QFT_def}
+\end{equation}
+
+\subsubsection{Interpretación Física}
+Desde una perspectiva física, la QFT transforma la información de la base 
+computacional (posición) a la base de Fourier (momento o frecuencia).
+\begin{itemize}
+    \item \textbf{Interferencia:} Los factores de fase $e^{2\pi i\, \frac{jk}{N}}$ 
+    son cruciales. Al sumar múltiples estados transformados, estos factores provocan 
+    interferencia constructiva en las frecuencias que corresponden a la periodicidad 
+    del sistema y destructiva en las demás.
+    \item \textbf{Unitaridad:} Como toda compuerta cuántica válida, la 
+    transformación es reversible ($\text{QFT}^\dagger \text{QFT} = I$).
+\end{itemize}
+
+En la fig \ref{fig:Code_QFT} se presenta la implementación de la QFT en código 
+utilizando la biblioteca Qiskit en Python, donde se observa la estructura 
+recursiva de compuertas Hadamard y rotaciones controladas de fase.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{imagenes/QFT.png}
+    \caption{Implementación en Python de la Transformada Cuántica de Fourier.}
+    \label{fig:Code_QFT}
+\end{figure}
+
+\subsection{Estimación de Fase Cuántica (QPE)}
+La Estimación de Fase es quizás la subrutina muy importante en la computación 
+cuántica algorítmica, generalizada por Kitaev \cite{kitaev1995quantum}. 
+Muchos problemas algebraicos complejos pueden reducirse a encontrar el 
+eigenvalor de un operador unitario.
+
+\subsubsection{Definición del Problema}
+Dado un operador unitario $U$ y uno de sus eigenestados $|u\rangle$ tal que:
+\begin{equation}
+    U|u\rangle = e^{2\pi i\phi} |u\rangle
+\end{equation}
+El objetivo es estimar el valor de la fase $\phi \in [0, 1)$.
+
+\subsubsection{Algoritmo y Circuito}
+El procedimiento utiliza dos registros cuánticos: un registro de control de $t$ 
+qubits (inicializados en $|0\rangle$) para almacenar la aproximación de la fase, 
+y un registro objetivo que almacena el eigenestado $|u\rangle$.
+
+\textbf{Procedimiento:}
+\begin{enumerate}
+    \item \textbf{Superposición:} Se aplican compuertas Hadamard al registro de 
+    control para crear una superposición equiprobable:
+    \begin{equation}
+        |\psi_1\rangle = \frac{1}{\sqrt{2^t}} \sum_{j=0}^{2^t -1} |j\rangle \otimes 
+        |u\rangle
+    \end{equation}
+    
+    \item \textbf{Aplicación del Oráculo (Phase Kickback):} Se aplican operaciones 
+    $U$ controladas. El término $U^j$ actuando sobre $|u\rangle$ inyecta la fase 
+    $e^{2\pi i j \phi}$ en el registro de control (retroceso de fase):
+    \begin{equation}
+        |\psi_2\rangle = \frac{1}{\sqrt{2^t}} \sum_{j=0}^{2^t -1} e^{2\pi i j \phi} 
+        |j\rangle \otimes |u\rangle
+    \end{equation}
+    
+    \item \textbf{QFT Inversa:} El estado resultante en el primer registro es 
+    exactamente la QFT del estado que codifica la fase $\phi$. Por tanto, 
+    aplicamos la $\text{QFT}^{-1}$ para recuperar el valor binario de la fase:
+    \begin{equation}
+        |\psi_3\rangle = |\tilde{\phi}\rangle \otimes |u\rangle
+    \end{equation}
+    
+    \item \textbf{Medición:} Al medir el primer registro, obtenemos una 
+    aproximación de $\phi$ con una precisión de $t$ bits.
+\end{enumerate}
+
+\begin{figure}[h!]
+    \centering
+    \begin{quantikz}[column sep=0.5cm]
+      \lstick{\( \ket{0}^{\otimes t} \)} & \gate{H^{\otimes t}} & \ctrl{1} & 
+      \gate{\text{QFT}^{-1}} & \meter{} \\
+      \lstick{\( \ket{u} \)}             & \qw                  & \gate{U^{2^j}} & 
+      \qw                    & \qw
+    \end{quantikz}
+    \caption{Esquema del circuito para la Estimación de Fase Cuántica.}
+    \label{fig:circuit_QPE}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{imagenes/Estimador_phase.png}
+    \caption{Ejemplo de código para la rutina de estimación de fase.}
+    \label{fig:Code_PE}
+\end{figure}
+
+\section{Algoritmo de Shor}
+
+El algoritmo de Shor es, sin duda, el algoritmo cuántico más célebre y con mayor 
+impacto potencial en la ciberseguridad global. Mientras que los algoritmos clásicos 
+de factorización (como el GNFS) operan en tiempo sub-exponencial, Shor demostró 
+que una computadora cuántica puede realizar esta tarea en tiempo polinómico 
+$O((\log N)^3)$.
+
+\subsection{Definición y motivaciones}
+El problema central es factorizar un número entero compuesto $N = p \times q$.
+\begin{itemize}
+    \item \textbf{Problema:} Dado un entero compuesto $N$, encontrar sus factores 
+    primos no triviales.
+    \item \textbf{Motivación:} La seguridad del sistema RSA descansa enteramente 
+    en la intratabilidad computacional de este problema para computadoras clásicas. 
+    Si la factorización se vuelve eficiente, la infraestructura de clave pública 
+    actual colapsa.
+    \item \textbf{Idea Clave:} El algoritmo no ataca la factorización directamente 
+    mediante división. En su lugar, utiliza la computación cuántica para resolver 
+    un problema relacionado: la \textbf{búsqueda de periodo} (Order Finding).
+\end{itemize}
+
+\subsection{Reducción del problema de factorización a la búsqueda de periodo}
+La conexión entre la teoría de números y la física cuántica se establece mediante 
+el siguiente teorema, que permite convertir el problema de factorización en un 
+problema de periodicidad.
+
+\begin{teorema}[Factorización vía Periodicidad]
+Sea $N$ un número compuesto y sea $a$ un entero tal que $\gcd(a, N) = 1$. Definimos 
+la función modular:
+\begin{equation}
+    f(x) = a^x \pmod N
+\end{equation}
+Si podemos encontrar el periodo $r$ de esta función (el menor entero tal que $a^r 
+\equiv 1 \pmod N$), y si este periodo $r$ cumple con dos condiciones:
+\begin{enumerate}
+    \item $r$ es un número par.
+    \item $a^{r/2} \not\equiv -1 \pmod N$.
+\end{enumerate}
+Entonces, los factores primos de $N$ pueden calcularse eficientemente mediante el 
+Máximo Común Divisor:
+\begin{equation}
+    p = \gcd(a^{r/2} - 1, N) \quad \text{y} \quad q = \gcd(a^{r/2} + 1, N)
+\end{equation}
+\end{teorema}
+
+La computación clásica es ineficiente encontrando $r$ porque requiere evaluar la 
+función exponencialmente muchas veces. La computación cuántica, mediante la 
+Estimación de Fase (QPE), puede encontrar $r$ evaluando la función en superposición 
+una sola vez.
+
+\subsection{Algoritmo de Shor: Procedimiento}
+El procedimiento general del algoritmo es híbrido, alternando pasos clásicos y 
+cuánticos:
+
+\begin{enumerate}
+    \item \textbf{(Clásico) Selección:} Elegir un número aleatorio $a < N$.
+    \item \textbf{(Clásico) Verificación:} Calcular $\gcd(a, N)$. Si es mayor que 1, 
+    hemos encontrado un factor por suerte. Si es 1, continuamos.
+    \item \textbf{(Cuántica) Búsqueda de Periodo:} Utilizar el circuito de 
+    estimación de fase sobre la función $f(x) = a^x \pmod N$ para encontrar el 
+    periodo $r$.
+    \item \textbf{(Clásico) Extracción de Factores:} Si $r$ es par y cumple las 
+    condiciones del teorema, calcular $\gcd(a^{r/2} \pm 1, N)$. Si no, repetir con 
+    un nuevo $a$.
+\end{enumerate}
+
+\subsubsection{Construcción explícita del Oráculo para N=15}
+
+Uno de los mayores desafíos en la implementación física de algoritmos cuánticos es 
+la construcción de funciones aritméticas (como $f(x) = a^x \pmod N$) en compuertas 
+lógicas reversibles.
+
+Para el caso general, se requiere construir sumadores y multiplicadores modulares 
+cuánticos, lo cual demanda miles de compuertas. Sin embargo, para casos pequeños 
+como $N=15$, es posible aplicar una técnica conocida como \textbf{«Compilación de 
+Shor»}, utilizada en la histórica primera demostración experimental del algoritmo 
+por Vandersypen et al. en IBM \cite{vandersypen2001experimental}.
+
+\textbf{Análisis de la Permutación:}
+El operador $U_a$ actúa sobre el estado $|y\rangle$ transformándolo en $|ay \pmod 
+N\rangle$. Analicemos el caso específico de nuestro experimento con $a=7$ y $N=15$. 
+Dado que $\gcd(7, 15)=1$, esta operación es una permutación biyectiva de los 
+elementos de $\mathbb{Z}_{15}$.
+
+Si observamos la acción de multiplicar por 7 repetidamente sobre los estados base:
+\begin{equation}
+    1 \xrightarrow{\times 7} 7 \xrightarrow{\times 7} 49 \equiv 4 \xrightarrow{
+        \times 7} 28 \equiv 13 \xrightarrow{\times 7} 1
+\end{equation}
+
+Esto revela que la operación $U_{7}$ realiza la permutación cíclica $(1 \to 7 
+\to 4 \to 13 \to 1)$. En representación binaria de 4 qubits:
+\begin{align*}
+    |0001\rangle &\to |0111\rangle \\
+    |0111\rangle &\to |0100\rangle \\
+    |0100\rangle &\to |1101\rangle \\
+    |1101\rangle &\to |0001\rangle
+\end{align*}
+
+\textbf{Implementación optimizada:}
+En lugar de implementar un circuito aritmético completo que calcule la 
+multiplicación, podemos construir un circuito lógico simplificado que simplemente 
+realice estos intercambios de bits específicos.
+
+Basándonos en la simplificación propuesta por Vandersypen, esta permutación puede 
+descomponerse en una serie mínima de compuertas SWAP. El código implementado en 
+la función \texttt{c\_amod15} de nuestro script realiza la operación mediante 
+tres transposiciones:
+\begin{enumerate}
+    \item $SWAP(0, 1)$
+    \item $SWAP(1, 2)$
+    \item $SWAP(2, 3)$
+\end{enumerate}
+
+Esta secuencia tiene el efecto neto de rotar y permutar los bits exactamente 
+como lo requiere la multiplicación modular por 7, reduciendo la profundidad 
+del circuito a $O(1)$.
+
+\textbf{Justificación y Limitaciones:}
+Esta técnica es válida experimentalmente pedagógica para demostrar la fase 
+de interferencia de Shor sin requerir recursos de hardware inmensos. Sin 
+embargo, es una optimización no escalable: para factorizar $N=323$, no podemos 
+pre-calcular la tabla de permutaciones (pues implicaría conocer el periodo a 
+priori), obligándonos a usar el circuito aritmético general, lo cual, como 
+se vio en los resultados, disparó la complejidad computacional de la simulación.
+
+\subsubsection{Circuito cuántico y Post-procesamiento}
+El núcleo del algoritmo es el circuito de búsqueda de orden que utiliza dos 
+registros: uno de conteo (inicializado en superposición) y otro objetivo.
+
+\begin{center}
+    \begin{quantikz}[column sep=0.8cm]
+      \lstick{\(\ket{0}^{\otimes n}\)} & \gate{H^{\otimes n}} & \ctrl{1} & 
+      \gate{\text{QFT}^{-1}} & \meter{} \\
+      \lstick{\(\ket{1}\)}             & \qw                  & \gate{U_a} & \qw                    & \qw
+    \end{quantikz}
+\end{center}
+
+Donde $U_a$ implementa la exponenciación modular controlada $|x\rangle 
+|y\rangle \to |x\rangle |a^x y \pmod N\rangle$.
+
+La salida del circuito es una aproximación de la fase $\phi \approx s/r$. 
+Para recuperar el periodo exacto $r$ a partir de esta medición ruidosa, se 
+utiliza el algoritmo clásico de \textbf{Fracciones Continuas}, el cual encuentra 
+la fracción $s/r$ que mejor aproxima el valor medido con un denominador menor que 
+$N$.
+
+\subsubsection{El método de Fracciones Continuas}
+La medición del circuito cuántico nos entrega un valor entero $y$. Al dividir 
+este valor por el tamaño del espacio de Hilbert $2^t$, obtenemos una aproximación 
+racional de la fase:
+\begin{equation}
+    \frac{y}{2^t} \approx \frac{s}{r}
+\end{equation}
+Donde $s$ es un entero desconocido y $r$ es el periodo buscado. El problema es 
+que $\frac{y}{2^t}$ casi nunca es exactamente igual a $\frac{s}{r}$ debido a la 
+imprecisión binaria.
+
+Para recuperar los valores exactos de $s$ y $r$ a partir de esta aproximación 
+ruidosa, utilizamos la expansión en \textbf{Fracciones Continuas}. Cualquier 
+número real $x$ puede representarse como:
+\begin{equation}
+    x = a_0 + \frac{1}{a_1 + \frac{1}{a_2 + \frac{1}{\dots}}} = [a_0; a_1, a_2, 
+    \dots]
+\end{equation}
+
+Si truncamos esta expansión en diferentes pasos, obtenemos una secuencia de 
+fracciones $\frac{p_n}{q_n}$ llamadas \textbf{convergentes}. Un teorema 
+fundamental de la teoría de números garantiza que si nuestra aproximación cumple:
+\begin{equation}
+    \left| \frac{y}{2^t} - \frac{s}{r} \right| < \frac{1}{2r^2}
+\end{equation}
+Entonces, la fracción simplificada $\frac{s}{r}$ aparecerá necesariamente como 
+uno de los convergentes de la expansión en fracciones continuas de $\frac{y}{2^t}$.
+
+\textbf{Procedimiento en el algoritmo:}
+\begin{enumerate}
+    \item Se calcula la expansión en fracciones continuas del valor medido $\frac{y}{2^t}$.
+    \item Se calculan los convergentes (fracciones simplificadas) de dicha expansión.
+    \item El denominador de cada convergente es un \textbf{candidato a periodo} $r'$.
+    \item Se verifica clásicamente si $a^{r'} \equiv 1 \pmod N$. El primer denominador 
+    que cumpla esta condición es el periodo verdadero $r$.
+\end{enumerate}
+
+\textbf{Ejemplo de aplicación:}
+Supongamos que al medir el registro de lectura para el caso $N=15$ y $a=7$, 
+obtenemos un valor binario que, normalizado, corresponde a la fase decimal 
+$\phi \approx 0.75$. Queremos recuperar la fracción original $s/r$.
+
+Aplicamos la expansión en fracciones continuas a $0.75$:
+\begin{enumerate}
+    \item Parte entera de $0.75$ es $0$. Resto: $0.75$. Invertimos: $1/0.75 = 1.333\dots$
+    \item Parte entera de $1.333\dots$ es $1$. Resto: $0.333\dots$. Invertimos: $1/0.333\dots = 3$.
+    \item Parte entera de $3$ es $3$. Resto $0$. Fin.
+\end{enumerate}
+
+La expansión es:
+\begin{equation}
+    0.75 = 0 + \frac{1}{1 + \frac{1}{3}} = [0; 1, 3]
+\end{equation}
+
+Calculamos los \textbf{convergentes} (candidatos) truncando la expansión:
+\begin{itemize}
+    \item \textbf{Primer convergente} $[0; 1]$:
+    \begin{equation}
+        0 + \frac{1}{1} = \frac{1}{1} \implies \text{Candidato } r=1.
+    \end{equation}
+    Verificamos: $7^1 \equiv 7 \not\equiv 1 \pmod{15}$. (Incorrecto).
+    
+    \item \textbf{Segundo convergente} $[0; 1, 3]$:
+    \begin{equation}
+        0 + \frac{1}{1 + \frac{1}{3}} = \frac{1}{\frac{4}{3}} = \frac{3}{4} 
+        \implies \text{Candidato } r=4.
+    \end{equation}
+    Verificamos: $7^4 = 2401 \equiv 1 \pmod{15}$. \textbf{(Correcto)}.
+\end{itemize}
+
+De esta forma, las fracciones continuas nos revelan que el denominador (periodo) 
+oculto detrás de la fase $0.75$ es $r=4$.
+
+\section{Simulación y resultados experimentales}
+
+Para validar la teoría, se implementó el algoritmo de Shor utilizando el framework 
+Qiskit y el simulador \texttt{aer\_simulator}. El código completo se encuentra en 
+el archivo \texttt{Shor\_completo.py} del repositorio.
+
+\subsection{Implementación del Oráculo para N=15}
+El mayor desafío técnico en la implementación de Shor es la construcción del 
+oráculo $U_a$. Para el caso pedagógico de $N=15$, es posible optimizar el circuito 
+manualmente utilizando compuertas SWAP, lo que reduce drásticamente la profundidad 
+del circuito.
+
+\begin{lstlisting}[language=Python, caption=Implementación optimizada del oráculo 
+    para N=15]
+def c_amod15(a, potencia):
+    '''Compuerta controlada para a^x mod 15'''
+    if a not in [2,4,7,8,11,13]:
+        raise ValueError("'a' must be 2, 4, 7, 8, 11 o 13")
+    U = QuantumCircuit(4)
+    for _iteration in range(potencia):
+        if a in [2, 13]:
+            U.swap(2,3)
+            U.swap(1,2)
+            U.swap(0,1)
+        if a in [7, 8]:
+            U.swap(0,1)          
+            U.swap(1,2)
+            U.swap(2,3)
+        # ... (otros casos omitidos por brevedad)
+    U = U.to_gate()
+    c_U = U.control()
+    return c_U
+\end{lstlisting}
+
+\subsection{Resultados: Factorización de 15}
+Se realizó una simulación completa factorizando $N=15$ con $a=7$.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagenes/Shor.png} 
+        \caption{Fragmento del código de ejecución.}
+        \label{fig:Shor_code}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagenes/Shor_circuit.png} 
+        \caption{Circuito generado por Qiskit.}
+        \label{fig:Shor_circuit}
+    \end{minipage}
+\end{figure}
+
+El simulador produjo un histograma de mediciones donde los picos corresponden 
+a las fases que interfieren constructivamente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{imagenes/output.png} 
+    \caption{Histograma de resultados. Los picos indican las fases correctas.}
+    \label{fig:Shor_output}
+\end{figure}
+
+Tras aplicar fracciones continuas a la salida medida, el sistema sugirió una 
+fase correspondiente a $s/r$ con denominador $r=4$.
+
+\textbf{Verificación y Factores:}
+\begin{equation}
+    7^4 = 2401 \equiv 1 \pmod{15} \implies r=4 \text{ es correcto.}
+\end{equation}
+Dado que $r=4$ es par, calculamos:
+\begin{align}
+    \gcd(7^{4/2} - 1, 15) &= \gcd(48, 15) = 3 \\
+    \gcd(7^{4/2} + 1, 15) &= \gcd(50, 15) = 5
+\end{align}
+El algoritmo factorizó exitosamente $15 = 3 \times 5$.
+
+\subsection{Análisis de Escalabilidad y el Caso N=323}
+Como parte del proyecto RSA, se intentó utilizar este mismo script para factorizar 
+$N=323$ ($13 \times 17$). Sin embargo, el experimento reveló una limitación crítica 
+de la simulación clásica:
+
+\begin{enumerate}
+    \item \textbf{Complejidad del Oráculo:} A diferencia de $N=15$, no existen 
+    simplificaciones triviales de SWAP para $N=323$. Se requiere un circuito 
+    aritmético modular generalizado.
+    \item \textbf{Explosión de Recursos:} Para $N=323$, se requieren 27 qubits 
+    ($n=9$ estado, $2n=18$ conteo). La simulación de un vector de estado de 
+    $2^{27}$ amplitudes, sumado a la profundidad del circuito aritmético, excedió 
+    las capacidades de procesamiento convencionales.
+\end{enumerate}
+
+Este resultado valida la tesis central de la computación cuántica: simular sistemas 
+cuánticos grandes en ordenadores clásicos es intratable; se requiere hardware 
+cuántico real para escalar.
+
+\section{Conclusiones}
+
+El desarrollo de este proyecto ha permitido transitar desde los fundamentos 
+matemáticos de la criptografía clásica hasta la frontera de la computación 
+cuántica.
+
+\begin{itemize}
+    \item \textbf{Vulnerabilidad de RSA:} Se ha demostrado teóricamente y mediante 
+    simulación (para $N=15$) que la seguridad de RSA es vulnerable ante el 
+    algoritmo de Shor.
+    \item \textbf{Supremacía Algorítmica:} La reducción de la complejidad de 
+    sub-exponencial a polinómica representa una ventaja cualitativa que ninguna 
+    mejora en el hardware clásico podrá igualar.
+    \item \textbf{Desafíos de Implementación:} La dificultad encontrada al escalar 
+    la simulación a $N=323$ subraya los desafíos técnicos: la construcción de 
+    oráculos eficientes y la necesidad de coherencia en un gran número de qubits 
+    son las barreras principales para la adopción práctica.
+    \item \textbf{Necesidad de Criptografía Post-Cuántica:} Dado que la física 
+    permite romper RSA, es imperativo para la seguridad global la transición 
+    hacia algoritmos resistentes a ataques cuánticos.
+\end{itemize}

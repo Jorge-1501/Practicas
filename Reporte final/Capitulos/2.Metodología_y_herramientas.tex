@@ -1,0 +1,61 @@
+\chapter{Metodología y herramientas}
+
+El desarrollo del proyecto siguió una metodología iterativa e incremental. El flujo 
+de trabajo se estructuró mediante la definición de objetivos, comenzando con la 
+revisión teórica, seguida de la implementación de modelos y finalizando con la 
+aplicación a datos reales o simulados.
+
+Semanalmente se realizaron sesiones con la asesora para verificar avances, 
+depurar el código y discutir las interpretaciones físicas de los resultados 
+obtenidos. Este enfoque permitió comprender rápidamente entre diferentes arquitecturas, 
+por ejemplo, de MLPs a GNNs. Además, se fomentó la experimentación con diferentes 
+hiperparámetros y técnicas de regularización para optimizar el rendimiento de los 
+modelos. 
+
+\section{Entorno de Desarrollo y Librerías}
+Para la ejecución de las tareas, se configuró un entorno de desarrollo basado en el 
+ecosistema de Python, aprovechando su hegemonía tanto en la ciencia de datos como 
+en la computación cuántica. A continuación, se describen las herramientas clave y 
+su función específica en el proyecto:
+
+\subsection{Análisis y Visualización de Datos}
+El manejo de los datasets de física, como \textit{ParticleNet}, requirió herramientas 
+óptimas para la manipulación tensorial y gráfica.
+\begin{itemize}
+    \item \textbf{NumPy y Pandas:} Utilizados para el preprocesamiento de datos 
+    estructurados, manejo de arrays multidimensionales y carga de archivos en 
+    formatos científicos, como \textit{.npz, .h5}.
+    \item \textbf{Matplotlib y Seaborn:} Fundamentales para la generación de 
+    gráficas de pérdida, matrices de confusión y visualización de 
+    distribuciones de variables cinemáticas ($p_T, \eta, \phi$).
+\end{itemize}
+
+\subsection{Machine Learning Clásico y Geométrico}
+Se emplearon los frameworks de aprendizaje profundo más extendidos para construir 
+los modelos de referencia y las arquitecturas avanzadas.
+\begin{itemize}
+    \item \textbf{PyTorch y PyTorch Geometric:} Fueron las herramientas principales 
+    para la Tarea II. PyTorch Geometric permitió la implementación eficiente de las 
+    redes de paso de mensajes (MPNN) y atención (GAT) sobre grafos no euclidianos.
+    \item \textbf{TensorFlow y Keras:} Utilizados para la implementación rápida de 
+    prototipos y para la construcción de las Redes Kolmogorov-Arnold (KAN) clásicas 
+    en la Tarea IX.
+\end{itemize}
+
+\subsection{Computación Cuántica (SDKs)}
+Dado el enfoque comparativo del trabajo, se utilizaron múltiples backends para 
+evaluar las diferencias en la simulación de circuitos.
+\begin{itemize}
+    \item \textbf{PennyLane (Xanadu) y Cirq (Google):}
+    Empleados para la construcción de circuitos híbridos en la Tarea I.
+    \item \textbf{Qiskit (IBM):} Empleado para la implementación canónica del 
+    Algoritmo de Shor y la verificación de resultados en simuladores de ruido.
+\end{itemize}
+
+\subsection{Herramientas de Soporte}
+\begin{itemize}
+    \item \textbf{Jupyter Notebooks:} Entorno interactivo principal para la 
+    experimentación rápida y documentación de código.
+    \item \textbf{Git y GitHub:} Utilizados para el control de versiones y la 
+    entrega final del portafolio de evidencias para la evaluación de GSoC.
+\end{itemize}

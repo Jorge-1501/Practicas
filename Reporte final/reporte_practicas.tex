@@ -1,0 +1,198 @@
+%----------------------------------------------------------------------------------------
+%	CONFIGURACIÓN DEL DOCUMENTO
+%----------------------------------------------------------------------------------------
+
+\documentclass[11pt, letterpaper]{report}
+
+%--- PAQUETES ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-tabla]{babel}
+\unaccentedoperators
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{lipsum}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{physics}
+\usepackage{tikz}
+\usepackage{quantikz}
+\usetikzlibrary{babel}
+\usepackage{booktabs}
+
+% --- Definición del entorno 'teorema' ---
+\theoremstyle{definition} 
+\newtheorem{teorema}{Teorema}[section] 
+
+%--- CONFIGURACIÓN DE GEOMETRÍA ---
+\geometry{
+    letterpaper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+%--- CONFIGURACIÓN DE HIPERVÍNCULOS ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=blue,
+    pdftitle={Reporte de Prácticas Profesionales - Jorge Toral},
+    pdfpagemode=FullScreen,
+}
+
+%--- CONFIGURACIÓN PARA EL CÓDIGO FUENTE ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize\ttfamily,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{
+    style=mystyle,
+    inputencoding=utf8,
+    extendedchars=true,
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1
+}
+
+%--- ENCABEZADO Y PIE DE PÁGINA ---
+\pagestyle{fancy}
+\fancyhf{} % Limpia todos los campos
+\fancyhead[L]{Análisis de Datos enfocado a física de partículas}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{Jorge Luis Toral Gamez} % Reemplaza con tu nombre
+
+
+%----------------------------------------------------------------------------------------
+%	INICIO DEL DOCUMENTO
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	PORTADA
+%----------------------------------------------------------------------------------------
+
+\begin{titlepage}
+    \centering
+    % \includegraphics[width=0.3\textwidth]{logo_buap.png} % Descomenta si tienes el logo
+    \vspace*{1cm}
+    {\LARGE \textbf{Benemérita Universidad Autónoma de Puebla} \par}
+    \vspace{0.5cm}
+    {\Large Facultad de Ciencias Físico Matemáticas \par}
+    \vspace{2cm}
+    {\Large Reporte Final de Prácticas Profesionales \par}
+    \vspace{0.5cm}
+    {\huge \textbf{Análisis de Datos enfocado a física de partículas} \par}
+    \vspace{0.5cm}
+    {\large Implementación de Algoritmos Cuánticos y Modelos de IA \par}
+    \vspace{4.5cm}
+    {\Large Presentado por: \par}
+    {\Large \textbf{Jorge Luis Toral Gamez} \par}
+    \texttt{jorge.toralga@alumno.buap.mx}
+    \vspace{3cm}
+    {\large Enero 2026 \par}
+\end{titlepage}
+
+%--- RESUMEN ---
+
+\chapter*{Resumen} 
+\addcontentsline{toc}{chapter}{Resumen}
+
+Este documento reporta las actividades de investigación y desarrollo tecnológico 
+realizadas durante las prácticas profesionales en el Centro Interdisciplinario de 
+Investigación y Enseñanza de la Ciencia (CIIEC) de la BUAP, abarcando el periodo 
+del 6 de enero al 6 de julio de 2025. El trabajo se alineó con los desafíos de 
+computación científica propuestos por la organización \textit{Machine Learning 
+for Science} (ML4SCI), integrando métodos de Inteligencia Artificial y Computación 
+Cuántica aplicados a la física de altas energías.
+
+El desarrollo técnico se estructuró en tres ejes fundamentales. En primer lugar, 
+se abordó la computación cuántica mediante la implementación y simulación del 
+\textbf{Algoritmo de Shor}, analizando críticamente su capacidad para la búsqueda 
+de periodos y sus implicaciones directas en la vulnerabilidad de la criptografía 
+RSA actual.
+
+En segundo lugar, se aplicaron técnicas de \textit{Geometric Deep Learning} para 
+la clasificación de jets (quarks vs. gluones) utilizando el conjunto de datos 
+ParticleNet. El estudio comparativo entre Redes de Paso de Mensajes (MPNN) y 
+Redes de Atención en Grafos (GAT) reveló una disyuntiva técnica clave: mientras la 
+arquitectura GAT maximiza la pureza de la selección (Alta Precisión), la MPNN 
+ofrece una mayor eficiencia de recuperación de señales (Alto Recall), proporcionando 
+criterios claros para su selección según el objetivo físico.
+
+Finalmente, se evaluó el potencial de las arquitecturas emergentes mediante las 
+\textbf{Redes Kolmogorov-Arnold (KAN)}. Los experimentos sobre el conjunto de 
+datos MNIST demostraron que una arquitectura KAN-Híbrida alcanza una exactitud del 
+88.03\%, superando a las variantes puras. El reporte culmina con la propuesta 
+teórica de la \textbf{Quantum KAN (Q-KAN)}, una arquitectura diseñada para explotar 
+la expresividad del espacio de Hilbert mediante circuitos variacionales, buscando 
+mitigar los costos computacionales de los splines clásicos en la era NISQ.
+
+\newpage
+
+
+%--- ÍNDICE ---
+\tableofcontents
+\newpage
+
+%----------------------------------------------------------------------------------------
+%	CONTENIDO DEL REPORTE
+%----------------------------------------------------------------------------------------
+\part{Introducción}
+\input{Capitulos/1.Introduccion.tex}
+\input{Capitulos/2.Metodología_y_herramientas.tex}
+
+\part{Machine Learning}
+\input{Capitulos/3.Fase_1_Fundamentos_IA.tex}
+\input{Capitulos/4.Fase_1_Implementacion_IA.tex}
+
+\part{Computación Cuántica}
+\input{Capitulos/5.Fase_2_Computacion_Cuantica.tex}
+\input{Capitulos/6.Fase_2_implementacion_Shor.tex}
+
+
+\part{Aplicaciones en física de partículas}
+\input{Capitulos/7.Fase_3_Aplicaciones_ML4SCI.tex}
+
+\input{Capitulos/8.Conclusiones.tex}
+
+
+
+
+%--- REFERENCIAS ---
+\bibliographystyle{plain}
+\bibliography{bibliografia}
+
+\end{document}

@@ -1,0 +1,167 @@
+\begin{thebibliography}{10}
+
+\bibitem{ml4sci}
+Machine learning for science (ml4sci).
+\newblock \url{https://ml4sci.org}, 2025.
+\newblock Accessed: 2026-01-28.
+
+\bibitem{bergholm2018pennylane}
+Ville Bergholm, Josh Izaac, Maria Schuld, Christian Gogolin, Shahnawaz Ahmed,
+  Vishnu Ajith, M~Sohaib Alam, Guillermo Alonso-Linaje, B~Akashnarayan, Amira
+  Ali, et~al.
+\newblock Pennylane: Automatic differentiation of hybrid quantum-classical
+  computations.
+\newblock {\em arXiv preprint arXiv:1811.04968}, 2018.
+
+\bibitem{buhrman2001quantum}
+Harry Buhrman, Richard Cleve, John Watrous, and Ronald de~Wolf.
+\newblock Quantum fingerprinting.
+\newblock {\em Physical Review Letters}, 87(16):167902, 2001.
+
+\bibitem{cybenko1989approximation}
+George Cybenko.
+\newblock Approximation by superpositions of a sigmoidal function.
+\newblock {\em Mathematics of control, signals and systems}, 2(4):303--314,
+  1989.
+
+\bibitem{deutsch1985quantum}
+David Deutsch.
+\newblock Quantum theory, the church-turing principle and the universal quantum
+  computer.
+\newblock {\em Proceedings of the Royal Society of London. A. Mathematical and
+  Physical Sciences}, 400(1818):97--117, 1985.
+
+\bibitem{cirq}
+Cirq Developers.
+\newblock Cirq.
+\newblock {\em Zenodo}, 2023.
+
+\bibitem{feynman1982simulating}
+Richard~P Feynman.
+\newblock Simulating physics with computers.
+\newblock {\em International journal of theoretical physics}, 21(6):467--488,
+  1982.
+
+\bibitem{friedberg_linear}
+Stephen~H Friedberg, Arnold~J Insel, and Lawrence~E Spence.
+\newblock {\em Linear Algebra}.
+\newblock Pearson, 5th edition, 2018.
+
+\bibitem{goodfellow2016deep}
+Ian Goodfellow, Yoshua Bengio, and Aaron Courville.
+\newblock {\em Deep Learning}.
+\newblock MIT press, 2016.
+\newblock \url{http://www.deeplearningbook.org}.
+
+\bibitem{haykin2009neural}
+Simon Haykin.
+\newblock {\em Neural networks and learning machines}.
+\newblock Pearson, 3rd edition, 2009.
+
+\bibitem{hornik1991approximation}
+Kurt Hornik.
+\newblock Approximation capabilities of multilayer feedforward networks.
+\newblock {\em Neural networks}, 4(2):251--257, 1991.
+
+\bibitem{hossain}
+Eklas Hossain.
+\newblock {\em Machine Learning Crash Course for Engineers}.
+\newblock Springer, 2024.
+
+\bibitem{katz2020introduction}
+Jonathan Katz and Yehuda Lindell.
+\newblock {\em Introduction to modern cryptography}.
+\newblock CRC press, 3rd edition, 2020.
+
+\bibitem{khan_curso_neuronas}
+{Khan Academy}.
+\newblock Lecciones de biología: Neuronas y sistema nervioso (unidad 33).
+\newblock Recurso en línea, 2026.
+\newblock Accedido: 22-01-2026.
+
+\bibitem{kitaev1995quantum}
+A~Yu Kitaev.
+\newblock Quantum measurements and the abelian stabilizer problem.
+\newblock {\em arXiv preprint quant-ph/9511026}, 1995.
+
+\bibitem{kolmogorov1957representation}
+Andrey~N Kolmogorov.
+\newblock On the representation of continuous functions of many variables by
+  superposition of continuous functions of one variable and addition.
+\newblock {\em Doklady Akademii Nauk SSSR}, 114:953--956, 1957.
+
+\bibitem{lecun1998mnist}
+Yann LeCun, L{\'e}on Bottou, Yoshua Bengio, and Patrick Haffner.
+\newblock Gradient-based learning applied to document recognition.
+\newblock {\em Proceedings of the IEEE}, 86(11):2278--2324, 1998.
+
+\bibitem{liu2025kan}
+Ziming Liu, Yixuan Wang, Sachin Vaidya, Fabian Ruehle, James Halverson, Marin
+  Solja{\v{c}}i{\'c}, Thomas~Y Hou, and Max Tegmark.
+\newblock Kan: Kolmogorov-arnold networks.
+\newblock {\em arXiv preprint arXiv:2404.19756}, 2025.
+
+\bibitem{nielsen_chuang}
+Michael~A Nielsen and Isaac~L Chuang.
+\newblock {\em Quantum computation and quantum information}.
+\newblock Cambridge University Press, 2010.
+
+\bibitem{rivest1978method}
+Ronald~L Rivest, Adi Shamir, and Leonard Adleman.
+\newblock A method for obtaining digital signatures and public-key
+  cryptosystems.
+\newblock {\em Communications of the ACM}, 21(2):120--126, 1978.
+
+\bibitem{rumelhart1986learning}
+David~E Rumelhart, Geoffrey~E Hinton, and Ronald~J Williams.
+\newblock Learning representations by back-propagating errors.
+\newblock {\em nature}, 323(6088), 1986.
+
+\bibitem{schmidt2021kolmogorov}
+Johannes Schmidt-Hieber.
+\newblock The kolmogorov-arnold representation theorem revisited.
+\newblock {\em Neural Networks}, 137:119--126, 2021.
+
+\bibitem{shannon1948}
+Claude~E Shannon.
+\newblock A mathematical theory of communication.
+\newblock {\em The Bell system technical journal}, 27(3), 1948.
+
+\bibitem{shor94}
+Peter~W Shor.
+\newblock Algorithms for quantum computation: discrete logarithms and
+  factoring.
+\newblock In {\em Proceedings 35th annual symposium on foundations of computer
+  science}, pages 124--134. IEEE, 1994.
+
+\bibitem{singh1999code}
+Simon Singh.
+\newblock {\em The code book: The science of secrecy from ancient Egypt to
+  quantum cryptography}.
+\newblock Fourth Estate, 1999.
+
+\bibitem{stinson2005cryptography}
+Douglas~R Stinson.
+\newblock {\em Cryptography: theory and practice}.
+\newblock CRC press, 2005.
+
+\bibitem{ai_curso}
+José Sánchez, Giner Alor, and Thelma Estevez.
+\newblock Inteligencia artificial. ia generativa y agentiva.
+\newblock Curso de TecNM, 2025.
+
+\bibitem{turing1936computable}
+Alan~Mathison Turing.
+\newblock On computable numbers, with an application to the
+  entscheidungsproblem.
+\newblock {\em Proceedings of the London mathematical society}, 2(42):230--265,
+  1936.
+
+\bibitem{vandersypen2001experimental}
+Lieven~MK Vandersypen, Matthias Steffen, Gregory Breyta, Costantino~S Yannoni,
+  Mark~H Sherwood, and Isaac~L Chuang.
+\newblock Experimental realization of shor's quantum factoring algorithm using
+  nuclear magnetic resonance.
+\newblock {\em Nature}, 414(6866):883--887, 2001.
+
+\end{thebibliography}

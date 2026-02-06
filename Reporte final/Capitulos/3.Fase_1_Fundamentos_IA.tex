@@ -1,0 +1,341 @@
+%--- ENERO-FEBRERO ---
+\chapter{Aprendizaje automático (Machine learning)}
+Esta primera etapa se centró en establecer una base sólida sobre los temas clave del proyecto. 
+En esta sección se desarrollan el primer objetivo establecido en la introducción, 
+se escriben las actividades realizadas para comprender los fundamentos del machine
+learning y la computación cuántica y también se da el contenido teórico recabado
+durante esta fase. 
+
+Se realizó una investigación exhaustiva sobre las arquitecturas de redes neuronales más relevantes 
+para la clasificación de imágenes. Se profundizó en los conceptos de capas convolucionales, pooling, 
+y funciones de activación. Como resultado práctico, se implementó una Red Neuronal Convolucional (CNN) 
+para un problema de clasificación de imágenes estándar, como MNIST. Es importante recordar las fechas
+en las que se realizó la recabación de la información ya que fue a inicios de 2025, basándose
+principalmente en el libro \textit{Machine Learning Crash Course for Engineers} de Eklas Hossain del 2024. 
+Es importante esta aclaración porque la inteligencia artificial ha estado avanzado rápidamente y los 
+modelos que las distintas empresas han estado lanzando enn los últimos meses han cambiado el panorama 
+del machine learning. Además, desde la popularización de los modelos de lenguaje, Large Language Models, 
+como ChatGPT, la salida y actualización de los modelos ha sido muy rápida, en cuestion de meses empezamos
+a ver nuevos modelos que superan a los anteriores en distintas áreas y tareas. También se han generado
+modelos generativos muy poderosos que crean imágenes, videos, audios, código etc.
+
+\section{Definición y conceptos clave}
+Primero definamos qué es machine learning o aprendizaje automático.
+
+El \textit{Machine Learning} es una rama de la inteligencia artificial (IA) 
+que permite a las computadores aprender de información existente y aplicar
+dicho aprendizaje a tareas similares sin necesidad de programarlo 
+explícitamente \cite{hossain}. 
+
+Esta herramienta fue creada para automatizar procesos monótonos y 
+suceptibles a errores humanos, como la clasificación de imágenes. Con el propósito de 
+dotar a las computadores de la habilidad de hacer que las tareas sena más
+accesibles y eficientes se logró automatizar, personalizar y descubir conocimiento nuevos
+permitiendo la innovación en diversos campos como la medicina, finanzas, transporte,
+entre otros.
+
+El flujo de trabajo tipico del machine learning lo podemos estructurar en las sigueintes 
+4 etapas \cite{hossain}:
+\begin{enumerate}
+    \item \textbf{Recolección de datos:} Se recopilan datos relevantes para el problema que se desea resolver.
+    \item \textbf{Preprocesamiento de datos:} Los datos se limpian y transforman para que sean adecuados para el entrenamiento del modelo.
+    \item \textbf{Entrenamiento del modelo:} Se selecciona un algoritmo de machine learning y se entrena utilizando los datos preprocesados.
+    \item \textbf{Evaluación y ajuste del modelo:} El modelo se evalúa utilizando datos de prueba y se ajusta para mejorar su rendimiento.
+\end{enumerate}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/Flujo_de_trabajo_ML.png}
+    \caption{Flujo de trabajo típico del machine learning. \cite{hossain}}
+    \label{fig:ml_workflow}
+\end{figure}
+
+Las aplicaciones del machine learning son diversas y abarcan múltiples campos
+como la visión por computadora, el procesamiento de lenguaje natural, la medicina,
+filtros de spam, entre otros. En la visión por computadora, por ejemplo, se utilizan
+redes neuronales convolucionales (CNN) para tareas como el reconocimiento de imágenes.
+
+\section{Algoritmos}
+Existen varias formas de clasificar los algoritmos del machine learning, una de ellas
+es según cómo aprenden, es decir, qué tipo de datos utiliza y cómo recibe retroalimentación.
+Con base en esto, los algoritmos se pueden clasificar en tres categorías principales:
+\begin{itemize}
+    \item \textbf{Aprendizaje supervisado:} El modelo se entrena con datos etiquetados, es decir,
+    cada entrada tiene una salida deseada asociada. El objetivo es que el modelo aprenda a mapear
+    entradas a salidas correctas. Ejemplos de algoritmos supervisados incluyen regresión lineal,
+    máquinas de vectores de soporte (SVM) y redes neuronales.
+    
+    \item \textbf{Aprendizaje no supervisado:} El modelo trabaja con datos no etiquetados y debe
+    encontrar patrones o estructuras subyacentes en los datos. Ejemplos incluyen clustering
+    (agrupamiento) y reducción de dimensionalidad.
+    
+    \item \textbf{Aprendizaje por refuerzo:} El modelo aprende a tomar decisiones mediante la
+    interacción con un entorno. Recibe recompensas o castigos según las acciones que realiza,
+    y su objetivo es maximizar la recompensa acumulada a lo largo del tiempo.
+\end{itemize}
+
+\section{Estado del arte}
+\subsection{Redes neuronales de grafos (GNN)}
+Las redes neuronales de grafos, o Graph Neural Networks (GNN),  son una clase de modelos de machine
+learning diseñados para trabajar con datos estructurados en forma de grafos o estructuras amorfas. 
+Estas redes son especialmente útiles para tareas donde las relaciones entre los datos son tan 
+importantes como los propios datos. Las GNN han demostrado ser efectivas en una gran variedad de 
+aplicaciones, por mencionar algunas:
+\begin{itemize}
+    \item Clasificación de nodos: Asignar etiquetas a los nodos en un grafo basado en sus caracteríticas
+    y relaciones.
+    \item PLN (Procesamiento de lenguaje natural): Modelar relaciones semánticas entre palabras o frases.
+    \item Química molecular: predecir propiedades de moléculas basándose en sus propiedades.
+    \item Redes sociales: Analizar interacciones entre usuarios y comunidades.
+    \item Tráfico y transporte: Modelar redes de transporte y optimizar rutas.
+\end{itemize}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/Fig_7.1-Flujo de una GNN.png}
+    \caption{Arquitectura de una red neuronal de grafos. \cite{hossain}}
+    \label{fig:GNN_arquitectura}
+\end{figure}
+
+\subsection{EfficientNet}
+EfficientNet es una familia de arquitecturas de red neuronal convolucional (CNN) que utiliza el 
+método de escalado compuesto para aumentar la eficiencia y precisión del modelo, ajustando 
+todas las dimensiones (ancho, profundidad y resolución de entrada) de manera equilibrada mediante
+coeficientes redefinidos. Esto permite obtener mejores resultados con menos parámetros y menor
+costo computacional en comparación con arquitecturas tradicionales como ResNet o Inception.
+Podemos llamar a EfficientNet usando librerías populares como TensorFlow y PyTorch, facilitando
+su integración en proyectos de machine learning.
+
+\begin{lstlisting}[language=Python, caption={Ejemplo de código para cargar EfficientNet en TensorFlow}]
+from tensorflow.keras.applications import EfficientNetB0
+\end{lstlisting}
+
+\subsection{InceptionV3}
+Inception v3 es una red neuronal convolucional (CNN) desarrollada 
+para GoogLeNet, se utiliza para la detección de objetos y análisis 
+de imágenes. Algunos aspectos clave son:
+\begin{itemize}
+    \item contiene 42 capas,
+    \item 25 millones de parámetros,
+    \item Permite redes más profundas sin aumentar excesivamente los parámetros,
+    \item Para evitar sobreajuste, utiliza arquitecturas conectadas de manera dispersa.
+\end{itemize}
+
+\begin{figure}[h!]
+        \centering
+        \includegraphics[width=1\linewidth]{imagenes/Fig_7.6_Arquitectura-Inception-v3.png}
+        \caption{Arquitectura de inception v3. Extraída de Eklas Hossain (2024)}
+        \label{fig: arquitectura_inception}
+\end{figure}
+
+\subsection{Yolo}
+YOLO (You Only Look Once) es un algoritmo avanzado de detección de objetos que 
+ofrece resultados en tiempo real. YOLO trata la detección como un problema de 
+regresión, analizando toda la imagen a la vez.
+
+\begin{itemize}
+    \item Tiempo de procesamiento: 45 FPS a 155 FPS.
+    \item Detector de objetos más rápido: Poseé el mayor promedio de precisión 
+    (mAP) con menor error usando la base de datos COCO
+    \item Generalización
+    \item Open-source
+\end{itemize}
+
+
+\subsection{Facebook Prophet}
+Algoritmo para pronosticar datos de series temporales. Su objetivo es proporcionar 
+una herramienta de predicción potente y fácil de interpretar sin necesidad de 
+conocimientos profundos.
+    \begin{itemize}
+        \item Trabaja con tendencias lineales y no lineales.
+        \item Maneja múltiples estacionalidades e intervalos irregulares.
+        \item Captura cambios en datos históricos debido a eventos importantes.
+        \item No requiere mucho preprocesamiento de datos, maneja datos faltantes y no es afectado por valores atípicos.
+    \end{itemize}
+
+
+\subsection{ChatGPT}
+ChatGPT es un modelo de lenguaje desarrollado por OpenAI, lanzado en noviembre de 
+2022. LAgunas caracteríticas clave de ese modelo son:
+    \begin{itemize}
+        \item domina 80 idiomas
+        \item fue entrenado con 300 mil millones de palabras
+        \item contenía 175 millones de parámetros
+        \item se usó aprendizaje supervisado y por refuerzo
+        \item fue escrito en Python usando TensorFlow y Pytorch
+    \end{itemize}
+
+Algunas limitaciones
+    \begin{itemize}
+        \item puede generar información incorrecta, comunmente se le llama «alucinaciones».
+        \item Formulación de preguntas. Aunque el modelo ha avanzado demasido en los
+        años posteriores para que la forma de la pregunta influye menos, sigue siento
+        importante y presenta ventajas significativas un correcto promt\footnote{
+            Este término fue apodado más adelante y se refiere a cómo generar el texto 
+            inicial o la pregunta. Ya que el modelo solo contruye respuestas usando una
+            secuancia de palabras más problables en continuar la oración es mejor darle 
+            bastante contexto para que sea más fácil obtener una buena respuesta.
+        }
+        \item Filtro en preguntas «inapropiadas» o «dañinas». Este filtro a evolucionado
+        \item con el tiempo, al igual que muchas características pero sigue siendo tema
+        de búsqueda, el cómo es que el modelo genera contenido sencible.
+        \item Redundancia.
+        \item Contexto. La cantidad de información que pueden recordar los modelos es variada
+        e influye mucho en los resultados.
+        \item Ventana de contexto y/o tokens. A la par con el contexto o memoria que puede
+        recordar un modelo también está cuánta información puede recibir el modelo en un solo 
+        prompt.
+\end{itemize}
+
+\subsection{Otro modelos actuales del primer semestre del 2026}
+
+En la industria e investigación lso modelos continuan evolucionando\footnote{Esto se agrega a la fecha 
+de redactado este reporte, enero del 2026.}, algunos que han 
+ganado presencia en el entorno mundial son:
+
+\begin{itemize}
+    \item \textbf{Modelos generativos}. En esencia son aquellos modelos que generan contenido
+    a partir de la información proporcionada. Por ejemplo, para generar imágenes tenemos a 
+    Nano Banana, para código tenemos a Claude, video tenemos a Sora, entre muchos otros.
+    \item \textbf{Modelos agentivos} Un agente de Ia es un sistema autónomo sofisticado que
+    percibe su entorno, razona sobra la información recibida, aprende de la experiencia y 
+    ejecuta acciones deliberadas para cumplir objetivos específicos \cite{ai_curso}. 
+\end{itemize}
+
+
+\section{Desafíos y optimización de modelos}
+
+\subsection{Desafíos en seguridad}
+
+Los desafíos de seguridad en el uso de la IA se puede ver reflejados en las aplicaciones 
+prácticas en tres ejes:
+    \begin{itemize}
+        \item Ataques de entrada adversarial. Estos ataques consisten en agregar 
+        ruido a los datos de entrenamiento, imperceptible para el humano pero 
+        dañino para el entrenamiento y en consecuencia, los resultados.
+        \item Ataques de peso adversarial. Estos problemas radican en el cambiar
+        o modificar los parámetros almacenados en la memoria de la computadora, 
+        ya se a de forma física o digital. Por ejemplo, si estamos en un entorno con 
+        alta radiación los bits pueden cambiar.
+        \item Alteriación estadística de los datos. Cuando los datos no son fiables 
+        podemos estar entrenando un modelo que no funcionará para el propósito que se 
+        quería. Es necesario analizar la fuentes y distribuciones de los datos.
+    \end{itemize}
+
+\begin{figure}[h!]
+        \centering
+        \includegraphics[width=0.75\linewidth]{imagenes/Fig_7.10_Attacks_in_AI-ML.png}
+        \caption{Problemas de seguridad. Extraída de Eklas Hossain (2024)}
+        \label{Flujo de GNN}
+    \end{figure}
+
+\subsection{Desafíos en hardware}
+
+El despliegue de modelos de Deep Learning en entornos de física de altas energías 
+(como FPGAs en detectores o sistemas embebidos) presenta restricciones severas de 
+latencia y consumo energético. Para abordar estos desafíos, es necesario reducir 
+la complejidad computacional y el tamaño de los modelos sin sacrificar 
+significativamente su precisión (\textit{accuracy}). Dos de las técnicas más 
+predominantes son la cuantización y la poda de pesos.
+
+\subsection{Cuantización}
+La cuantización es el proceso de mapear valores de entrada de un conjunto grande 
+(a menudo continuo, como números de punto flotante de 32 bits, FP32) a un conjunto 
+más pequeño y discreto (como enteros de 8 bits, INT8). Este proceso reduce la 
+huella de memoria y acelera la inferencia al permitir operaciones aritméticas con 
+enteros.
+
+Matemáticamente, la cuantización de un número real $r$ a un valor cuantizado $q$ 
+se define mediante un factor de escala $S$ y un punto cero $Z$:
+
+\begin{equation}
+    q = \text{round}\left( \frac{r}{S} + Z \right)
+\end{equation}
+
+Donde la recuperación del valor real (descuantización) se obtiene mediante:
+\begin{equation}
+    r \approx S(q - Z)
+\end{equation}
+
+Existen dos esquemas principales para determinar $S$ y $Z$:
+
+\subsubsection{Cuantización Afín (Affine Quantization)}
+También conocida como \textbf{cuantización asimétrica}. Se utiliza cuando la 
+distribución de los datos no es simétrica respecto al cero (por ejemplo, las 
+salidas de una función de activación ReLU, que son siempre no negativas).
+
+En este esquema, el rango de valores reales $[r_{min}, r_{max}]$ se mapea al rango 
+de enteros $[q_{min}, q_{max}]$ (por ejemplo, $[0, 255]$ para 8 bits). El factor 
+de escala $S$ y el punto cero $Z$ se calculan como:
+
+\begin{equation}
+    S = \frac{r_{max} - r_{min}}{q_{max} - q_{min}}
+\end{equation}
+
+\begin{equation}
+    Z = \text{round}\left( q_{min} - \frac{r_{min}}{S} \right)
+\end{equation}
+
+Este método aprovecha todo el rango dinámico de los enteros disponibles, pero 
+introduce un costo computacional adicional durante la inferencia debido a que 
+$Z \neq 0$, lo que requiere sumar este término en cada operación matricial.
+
+\subsubsection{Cuantización por Escala (Scale Quantization)}
+Conocida también como \textbf{cuantización simétrica}. Se utiliza comúnmente para 
+cuantizar los pesos del modelo, que tienden a distribuirse normalmente alrededor 
+del cero. 
+
+Aquí, forzamos a que el punto cero sea $Z = 0$. El rango de valores reales se 
+define simétricamente como 
+$[-r_{max}, r_{max}]$, donde $r_{max} = \max(|r_{min}|, |r_{max}|)$. 
+El factor de escala se simplifica a:
+
+\begin{equation}
+    S = \frac{r_{max}}{2^{n-1} - 1}
+\end{equation}
+
+Donde $n$ es el número de bits. Al ser $Z=0$, la operación de descuantización se 
+reduce a una simple multiplicación ($r \approx S \cdot q$), lo que hace que la 
+inferencia sea computacionalmente más eficiente que en el esquema afín.
+
+\subsection{Poda de Pesos (Weight Pruning)}
+La poda consiste en eliminar sistemáticamente las conexiones (pesos) menos 
+importantes de una red neuronal, convirtiendo las matrices densas en matrices 
+dispersas (\textit{sparse matrices}). La hipótesis subyacente es que muchos 
+parámetros son redundantes y su eliminación tiene un impacto mínimo en la 
+salida del modelo.
+
+El proceso se puede formalizar definiendo una máscara binaria $M$ del mismo 
+tamaño que la matriz de pesos $W$:
+
+\begin{equation}
+    W' = W \odot M
+\end{equation}
+
+Donde $\odot$ denota el producto de Hadamard (elemento a elemento). La máscara 
+se determina según un criterio de importancia, típicamente la magnitud del peso:
+
+\begin{equation}
+    M_{ij} = 
+    \begin{cases} 
+    1 & \text{si } |W_{ij}| \geq \lambda \\
+    0 & \text{si } |W_{ij}| < \lambda 
+    \end{cases}
+\end{equation}
+
+Donde $\lambda$ es un umbral predefinido. Existen dos estrategias principales:
+\begin{itemize}
+    \item \textbf{Poda no estructurada:} Elimina pesos individuales arbitrarios. 
+    Logra altas tasas de compresión pero requiere hardware específico para 
+    acelerar las operaciones con matrices dispersas irregulares.
+    \item \textbf{Poda estructurada:} Elimina estructuras completas (neuronas 
+    enteras, canales o filtros de convolución). Aunque la tasa de compresión 
+    es menor, el modelo resultante mantiene su estructura densa y puede 
+    acelerarse directamente en GPUs y TPUs estándar.
+\end{itemize}
+
+\section{Conclusiones}
+La IA y el aprendizaje automático ML han avanzado significativamente, pero aún 
+dependen de los humanos para evitar errores triviales.
+Estas tecnologías están destinadas a complementar la fuerza laboral humana, 
+volviéndose cada vez más esenciales en las tecnologías modernas.
